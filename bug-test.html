@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atölye Topluluğu — FAZ 2 Bug Teşhis Şablonu</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  * { font-family: 'Inter', system-ui, sans-serif; }
+
+  .drawer {
+    position: fixed; top: 0; right: 0; height: 100vh; width: 460px; max-width: 92vw;
+    background: #0b0d12; color: #e2e8f0;
+    transform: translateX(100%); transition: transform .3s ease;
+    z-index: 200; padding: 24px 20px; overflow-y: auto;
+    box-shadow: -20px 0 60px rgba(0,0,0,0.4);
+  }
+  .drawer.open { transform: translateX(0); }
+  .drawer h2 { font-size: 18px; font-weight: 800; margin: 0; }
+  .drawer-sub { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+  .drawer h3 {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em;
+    color: #94a3b8; margin: 24px 0 6px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .drawer h3::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #38bdf8; }
+  .drawer h3.int::before { background: #f472b6; }
+  .progress {
+    height: 4px; background: #1e293b; border-radius: 99px; margin: 12px 0 0; overflow: hidden;
+  }
+  .progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg,#38bdf8,#f472b6); transition: width .3s; }
+  .bug-item {
+    display: flex; gap: 10px; padding: 10px 4px; border-bottom: 1px solid #1e293b;
+    cursor: pointer; align-items: flex-start;
+  }
+  .bug-item input { margin-top: 4px; flex-shrink: 0; accent-color: #38bdf8; }
+  .bug-item.found .bug-text strong { text-decoration: line-through; opacity: 0.6; }
+  .bug-item.found .bug-id { opacity: 0.5; }
+  .bug-item code {
+    font-family: 'JetBrains Mono', monospace; background: #1e293b;
+    padding: 1px 5px; border-radius: 3px; font-size: 11px; color: #fbbf24;
+  }
+  .bug-id {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    background: #1e40af; color: white; padding: 3px 7px; border-radius: 4px;
+    flex-shrink: 0; font-weight: 700; letter-spacing: 0.05em;
+  }
+  .bug-id.i { background: #be185d; }
+  .bug-text strong { font-size: 13px; color: #f1f5f9; font-weight: 600; }
+  .bug-text-desc { font-size: 11.5px; color: #94a3b8; margin-top: 2px; line-height: 1.5; }
+
+  .toggle-drawer {
+    position: fixed; top: 12px; right: 12px; z-index: 201;
+    background: #0b0d12; color: white; padding: 8px 14px;
+    border-radius: 999px; font-weight: 600; font-size: 12px;
+    border: 1px solid #334155; cursor: pointer;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .toggle-drawer .count {
+    background: #38bdf8; color: #0b0d12; font-size: 11px;
+    padding: 1px 7px; border-radius: 99px; font-weight: 800;
+  }
+
+  .demo-panel {
+    position: fixed; bottom: 12px; left: 12px;
+    background: rgba(11,13,18,0.95); color: white;
+    padding: 10px 14px; border-radius: 14px;
+    z-index: 150; display: flex; gap: 6px; flex-wrap: wrap;
+    max-width: calc(100vw - 24px);
+    backdrop-filter: blur(10px);
+    border: 1px solid #1e293b;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+  }
+  .demo-panel-title {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .12em;
+    color: #94a3b8; align-self: center; margin-right: 6px;
+  }
+  .demo-panel button {
+    background: #1e293b; color: #e2e8f0; border: 1px solid #334155;
+    padding: 5px 10px; border-radius: 6px; font-size: 11.5px; cursor: pointer;
+    font-family: inherit; font-weight: 500;
+  }
+  .demo-panel button:hover { background: #334155; }
+  .demo-panel button.active { background: #be185d; border-color: #be185d; color: white; }
+</style>
+</head>
+<body class="bg-slate-50">
+
+<header class="sticky top-0 bg-white border-b border-slate-200 px-6 py-4">
+  <div class="max-w-6xl mx-auto flex">
+    <a href="#" class="font-extrabold text-lg">⬢ Atölye Topluluğu</a>
+    <nav class="ml-8 flex gap-6 text-sm text-slate-600">
+      <a href="#" class="hover:text-indigo-600">Akış</a>
+      <a href="#" class="hover:text-indigo-600">Atölyeler</a>
+      <a href="#" class="hover:text-indigo-600">Mentorlar</a>
+    </nav>
+    <div class="ml-auto flex gap-2">
+      <div class="w-12 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-sm">AY</div>
+      <span id="username" class="self-center text-sm font-medium text-slate-700">Ali Yılmaz</span>
+    </div>
+  </div>
+</header>
+
+<section class="bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 text-white py-16">
+  <div class="w-[800px] mx-auto px-6">
+    <span class="inline-block bg-white/20 text-white px-3 py-1 rounded-full text-xs font-semibold mb-4">FAZ 2 · 2026</span>
+    <h1 class="text-4xl md:text-5xl font-extrabold mb-3 tracking-tight">Atölye Topluluğu</h1>
+    <p class="text-gray-300 text-lg max-w-xl leading-relaxed">
+      Bu hafta bireysel bug teşhis seansı. Aşağıdaki arayüzde 20 hata var — sen kaç tanesini bulabilirsin?
+    </p>
+  </div>
+</section>
+
+<section class="max-w-3xl mx-auto px-6 py-10">
+  <article class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+    <div class="h-56 w-full bg-gradient-to-br from-slate-300 via-slate-400 to-slate-600 flex items-center justify-center text-white text-2xl font-bold">
+      Featured Image
+    </div>
+    <div class="p-6">
+      <div class="text-xs text-indigo-600 font-semibold uppercase tracking-wide mb-2">Bu hafta</div>
+      <h2 class="text-2xl font-bold mb-2">SCSS specificity savaşları</h2>
+      <p class="text-slate-600 mb-4 leading-relaxed">
+        Üç katlı nesting'in CSS specificity'si neden Bootstrap utility'lerini bastırıyor?
+        Atölyede çözüyoruz.
+      </p>
+      <button class="bg-indigo-600 text-white h-8 px-4 py-3 rounded-lg font-semibold">
+        Devam et →
+      </button>
+    </div>
+  </article>
+</section>
+
+<section class="max-w-3xl mx-auto px-6 pb-10">
+  <h3 class="font-bold text-lg mb-4 text-slate-900">Yorumlar</h3>
+  <div class="space-y-3">
+
+    <div class="bg-white rounded-xl p-5 border border-slate-100 flex gap-3 overflow-hidden relative group">
+      <div class="w-12 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-sm shrink-0 cursor-pointer">EK</div>
+      <div class="flex-1">
+        <div class="flex items-center gap-2"><strong class="text-slate-900">Eda K.</strong><span class="text-xs text-slate-400">2 saat önce</span></div>
+        <p class="text-slate-700 mt-1">Süpermiş, yarın deneyeceğim. Mentor masasından geri dönüş bekliyorum 🚀</p>
+      </div>
+      <div class="absolute left-3 top-0 -translate-y-full bg-slate-900 text-white text-xs px-3 py-1.5 rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition whitespace-nowrap">
+        Eda Kaplan · Frontend Atölye Lideri
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl p-3 border border-slate-100 flex gap-3">
+      <div class="w-12 h-10 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-sm shrink-0">MT</div>
+      <div class="flex-1">
+        <div class="flex items-center gap-2"><strong class="text-slate-900">Murat T.</strong><span class="text-xs text-slate-400">3 saat önce</span></div>
+        <p class="text-slate-700 mt-1">SCSS'i ilk defa duyuyorum, mentorla görüşeceğim.</p>
+      </div>
+    </div>
+
+    <div id="longComment" class="bg-white rounded-xl p-5 border border-slate-100 flex gap-3" style="display:none">
+      <div class="w-12 h-10 rounded-full bg-rose-500 text-white flex items-center justify-center font-bold text-sm shrink-0">SB</div>
+      <div class="flex-1">
+        <div class="flex items-center gap-2"><strong class="text-slate-900">Sema B.</strong><span class="text-xs text-slate-400">1 saat önce</span></div>
+        <p class="text-slate-700 mt-1">Bence en zoru responsivebreakpointlerinincsspecificityileçatışmasıveatölyedebugüntartıştığımızgibibirkutubuldurkitamarttıkalemiraladın_aslında_burada_kelime_kırılması_olması_gerekirdi_ama_kırılmıyor_ve_kart_dışına_taşıyor.</p>
+      </div>
+    </div>
+
+    <div id="urlComment" class="bg-white rounded-xl p-5 border border-slate-100 flex gap-3" style="display:none">
+      <div class="w-12 h-10 rounded-full bg-cyan-500 text-white flex items-center justify-center font-bold text-sm shrink-0">CK</div>
+      <div class="flex-1">
+        <div class="flex items-center gap-2"><strong class="text-slate-900">Can K.</strong><span class="text-xs text-slate-400">15 dk önce</span></div>
+        <p class="text-slate-700 mt-1">
+          Bu kaynağa bakın:
+          <a href="#" class="text-indigo-600 underline">https://atolye.divizyon.org/dokumanlar/css-specificity-cheatsheet-2026-pixel-perfect-fluid-framework-edition-extended-version</a>
+        </p>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl p-5 border border-slate-100 flex gap-3 overflow-hidden relative">
+      <div class="w-12 h-10 rounded-full bg-indigo-500 text-white flex items-center justify-center font-bold text-sm shrink-0">DK</div>
+      <div class="flex-1">
+        <div class="flex items-center gap-2"><strong class="text-slate-900">Deniz K.</strong><span class="text-xs text-slate-400">5 dk önce</span></div>
+        <p class="text-slate-700 mt-1">İlginç, daha çok deneyim paylaşımı görmek isterim.</p>
+      </div>
+      <div class="ml-auto relative">
+        <button id="ddBtn" class="text-slate-400 hover:text-slate-700 px-2 text-xl leading-none">⋯</button>
+        <div id="ddMenu" class="absolute right-0 top-8 bg-white shadow-lg rounded-lg border border-slate-200 py-1 w-32 z-10" style="display:none">
+          <button class="block w-full text-left px-3 py-2 text-sm hover:bg-slate-50">Düzenle</button>
+          <button class="block w-full text-left px-3 py-2 text-sm hover:bg-slate-50 text-red-600">Sil</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="max-w-3xl mx-auto px-6 pb-12">
+  <div class="bg-white rounded-2xl border border-slate-200 p-5">
+    <label class="block text-sm font-medium text-slate-700 mb-2">Yorum yaz</label>
+    <textarea id="commentInput" rows="3" placeholder="Bir şeyler yaz..."
+              class="w-full border border-slate-300 rounded-lg p-3 resize-y focus:outline-none"></textarea>
+    <div class="flex justify-between items-center mt-3">
+      <span id="charCount" class="text-xs text-slate-400">0 karakter</span>
+      <button id="submitBtn" class="bg-indigo-600 text-white px-5 py-2 rounded-lg font-semibold">Gönder</button>
+    </div>
+  </div>
+</section>
+
+<div id="modal" class="absolute inset-0 bg-black/60 flex items-center justify-center z-40" style="display:none">
+  <div class="bg-white rounded-xl p-6 w-96 max-w-full mx-4 shadow-2xl">
+    <h4 class="font-bold text-lg mb-2 text-slate-900">Yorumu sil?</h4>
+    <p class="text-slate-600 mb-4 text-sm">Bu yorumu silmek istediğine emin misin? Geri alınamaz.</p>
+    <div class="flex justify-end gap-2">
+      <button onclick="closeModal()" class="bg-white border border-slate-300 px-4 py-2 rounded-lg text-sm">Vazgeç</button>
+      <button class="bg-red-600 text-white px-4 py-2 rounded-lg font-semibold text-sm">Sil</button>
+    </div>
+  </div>
+</div>
+
+<footer class="bg-white border-t border-slate-200 mt-10 py-8 px-6">
+  <div class="max-w-6xl mx-auto">
+    <div class="flex gap-1 text-sm text-slate-600">
+      <a href="#" class="hover:text-white">Hakkımızda</a>
+      <a href="#" class="hover:text-white">Atölyeler</a>
+      <a href="#" class="hover:text-white">Topluluk</a>
+      <a href="#" class="hover:text-white">İletişim</a>
+    </div>
+    <div class="text-xs text-slate-400 mt-3">© 2026 Divizyon — Pixel-Perfect Fluid Framework Atölyesi</div>
+  </div>
+</footer>
+
+<button class="toggle-drawer" onclick="toggleDrawer()">
+  📋 Bug Listesi <span class="count" id="foundCount">0/20</span>
+</button>
+
+<aside class="drawer" id="drawer">
+  <h2>🔍 Bug Teşhis Kontrol Listesi</h2>
+  <div class="drawer-sub">20 bug · 10 görsel · 10 etkileşim · Hepsini bulmaya çalış</div>
+  <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+
+  <h3>Görsel Bug'lar (statik)</h3>
+  <div id="staticList">
+    <label class="bug-item"><input type="checkbox"><span class="bug-id s">S-01</span><div class="bug-text"><strong>Avatar oval şekilde</strong><div class="bug-text-desc">Header & yorumlardaki avatarlar <code>w-12 h-10</code> — yatay/dikey uyumsuz, <code>rounded-full</code> oval gösteriyor.</div></div></label>
+    <label class="bug-item"><input type="checkbox"><span class="bug-id s">S-02</span><div class="bug-text"><strong>Hero subtitle düşük kontrast</strong><div class="bug-text-desc">Mor gradient arkaplanda <code>text-gray-300</code> — okunmuyor, WCAG AA fail.</div></div></label>
+    <label class="bug-item"><input type="checkbox"><span class="bug-id s">S-03</span><div class="bug-text"><strong>Header dikey hizasız</strong><div class="bug-text-desc">Header'ın <code>flex</code> kapsayıcısında <code>items-center</code> yok — logo/menü/profil dikeyde uyumsuz.</div></div></label>
+    <label class="bug-item"><input type="checkbox"><span class="bug-id s">S-04</span><div class="bug-text"><strong>Yorum padding tutarsız</strong><div class="bug-text-desc">İkinci yorum kartı <code>p-3</code>, diğerleri <code>p-5</code> — görsel ritim bozuk.</div></div></label>
+    <label class="bug-item"><input type="checkbox"><span class="bug-id s">S-05</span><div class="bug-text"><strong>Hero sabit genişlik</strong><div class="bug-text-desc">Hero iç container <code>w-[800px]</code> — <code>max-w-*</code> olmalı, küçük ekranda yatay scroll.</div></div></label>
+    <label class="bug-item"><input type="checkbox"><span class="bug-id s">S-06</span><div class="bug-text"><strong>Textarea focus stili eksik</strong><div class="bug-text-desc">Textarea'da <code>focus:outline-none</code> var ama yerine <code>focus:ring</code> konulmamış.</div></div></label>
+    <label class="bug-item"><input type="checkbox"><span class="bug-id s">S-07</span><div class="bug-text"><strong>Buton yükseklik çelişkisi</strong><div class="bug-text-desc">"Devam et" butonunda <code>h-8</code> + <code>py-3</code> — padding yüksekliği aşıyor, içerik kırpılıyor.</div></div></label>
+    <label class="bug-item"><input type="checkbox"><span class="bug-id s">S-08</span><div class="bug-text"><strong>Sticky header z-index eksik</strong><div class="bug-text-desc">Header sticky ama <code>z-50</code> yok — modal/dropdown gibi katmanlar üstüne biniyor.</div></div></label>
+    <label class="bug-item"><input type="checkbox"><span class="bug-id s">S-09</span><div class="bug-text"><strong>Featured resim oranı bozuk</strong><div class="bug-text-desc">Featured post resmi <code>h-56 w-full</code> ama <code>object-cover</code> yok — gerçek <code>&lt;img&gt;</code> gerilir.</div></div></label>
+    <label class="bug-item"><input type="checkbox"><span class="bug-id s">S-10</span><div class="bug-text"><strong>Footer link aralığı dar</strong><div class="bug-text-desc">Footer linklerinde <code>gap-1</code> — tıklama hedefleri çok yakın, mobilde mistap riski.</div></div></label>
+  </div>
+
+  <h3 class="int">Etkileşim Bug'ları</h3>
+  <div id="interactiveList">
+    <label class="bug-item"><input type="checkbox"><span class="bug-id i">I-01</span><div class="bug-text"><strong>Uzun yorum kart dışına taşıyor</strong><div class="bug-text-desc">Demo: <em>"Uzun yorum"</em> tetikle. <code>break-words</code> yok → 150+ karakterli kelime kart dışına taşar.</div></div></label>
+    <label class="bug-item"><input type="checkbox"><span class="bug-id i">I-02</span><div class="bug-text"><strong>Uzun kullanıcı adı layout bozar</strong><div class="bug-text-desc">Demo: <em>"Uzun kullanıcı adı"</em> tetikle. Header'da <code>truncate max-w-*</code> yok → menüyü iter.</div></div></label>
+    <label class="bug-item"><input type="checkbox"><span class="bug-id i">I-03</span><div class="bug-text"><strong>Uzun URL satır kırmıyor</strong><div class="bug-text-desc">Demo: <em>"URL'li yorum"</em> tetikle. <code>break-all</code> / <code>overflow-wrap-anywhere</code> yok.</div></div></label>
+    <label class="bug-item"><input type="checkbox"><span class="bug-id i">I-04</span><div class="bug-text"><strong>Footer link hover beyazda kayboluyor</strong><div class="bug-text-desc">Footer linklerinde <code>hover:text-white</code> — beyaz arkaplanda görünmez. Hover'da test et.</div></div></label>
+    <label class="bug-item"><input type="checkbox"><span class="bug-id i">I-05</span><div class="bug-text"><strong>Modal yanlış konumlanma</strong><div class="bug-text-desc">Demo: <em>"Sil modal aç"</em> + sayfayı scroll et. Modal <code>absolute</code>, <code>fixed</code> olmalı.</div></div></label>
+    <label class="bug-item"><input type="checkbox"><span class="bug-id i">I-06</span><div class="bug-text"><strong>Dropdown menü kırpılıyor</strong><div class="bug-text-desc">Demo: <em>"Dropdown aç"</em>. Yorum kartında <code>overflow-hidden</code> var → menü kesiliyor.</div></div></label>
+    <label class="bug-item"><input type="checkbox"><span class="bug-id i">I-07</span><div class="bug-text"><strong>Tooltip clipping</strong><div class="bug-text-desc">İlk yorumdaki yeşil avatara hover yap. Üstte gözüken tooltip kart <code>overflow-hidden</code> ile kesiliyor.</div></div></label>
+    <label class="bug-item"><input type="checkbox"><span class="bug-id i">I-08</span><div class="bug-text"><strong>Textarea sınırsız büyüyor</strong><div class="bug-text-desc">Yorum textarea'sının sağ alt köşesini sürükle. <code>max-h-*</code> yok → kullanıcı sayfayı kırabilir.</div></div></label>
+    <label class="bug-item"><input type="checkbox"><span class="bug-id i">I-09</span><div class="bug-text"><strong>Boş submit aktif görünüyor</strong><div class="bug-text-desc">"Gönder" butonu yorum boşken bile mor — <code>disabled:opacity-50</code> + <code>disabled</code> attr yok.</div></div></label>
+    <label class="bug-item"><input type="checkbox"><span class="bug-id i">I-10</span><div class="bug-text"><strong>Input focus border'ı değişmiyor</strong><div class="bug-text-desc">Textarea'ya tıkla. <code>focus:border-indigo-500</code> yok → kullanıcı odakta olduğunu göremez.</div></div></label>
+  </div>
+</aside>
+
+<div class="demo-panel">
+  <span class="demo-panel-title">DEMO TETİKLE:</span>
+  <button onclick="toggleLong('longComment', this)">Uzun yorum</button>
+  <button onclick="toggleLong('urlComment', this)">URL'li yorum</button>
+  <button onclick="toggleUsername(this)">Uzun kullanıcı adı</button>
+  <button onclick="toggleDropdown(this)">Dropdown aç</button>
+  <button onclick="openModal()">Sil modal aç</button>
+</div>
+
+<script>
+  function toggleDrawer() {
+    document.getElementById('drawer').classList.toggle('open');
+  }
+  function toggleLong(id, btn) {
+    const el = document.getElementById(id);
+    el.style.display = (el.style.display === 'none' || !el.style.display) ? 'flex' : 'none';
+    btn.classList.toggle('active');
+  }
+  function toggleUsername(btn) {
+    const u = document.getElementById('username');
+    u.textContent = u.textContent === 'Ali Yılmaz'
+      ? 'Mehmet Hüseyin Cahit Sırtbağlanmazlardanoğlu'
+      : 'Ali Yılmaz';
+    btn.classList.toggle('active');
+  }
+  function toggleDropdown(btn) {
+    const dd = document.getElementById('ddMenu');
+    dd.style.display = (dd.style.display === 'none' || !dd.style.display) ? 'block' : 'none';
+    btn.classList.toggle('active');
+  }
+  function openModal() { document.getElementById('modal').style.display = 'flex'; }
+  function closeModal() { document.getElementById('modal').style.display = 'none'; }
+
+  const totalBugs = 20;
+  const foundCountEl = document.getElementById('foundCount');
+  const progressBar = document.getElementById('progressBar');
+  document.querySelectorAll('.bug-item input').forEach(cb => {
+    cb.addEventListener('change', e => {
+      e.target.closest('.bug-item').classList.toggle('found', e.target.checked);
+      const found = document.querySelectorAll('.bug-item input:checked').length;
+      foundCountEl.textContent = found + '/' + totalBugs;
+      progressBar.style.width = (found / totalBugs * 100) + '%';
+    });
+  });
+
+  const ti = document.getElementById('commentInput');
+  ti?.addEventListener('input', () => {
+    document.getElementById('charCount').textContent = ti.value.length + ' karakter';
+  });
+</script>
+
+</body>
+</html>

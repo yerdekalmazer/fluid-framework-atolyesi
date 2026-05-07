@@ -1,0 +1,2376 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pixel-Perfect Fluid Framework Atölyesi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<style>
+  :root {
+    --bg-0: #07070b;
+    --bg-1: #0d0d14;
+    --bg-2: #12131c;
+    --bg-3: #181a26;
+    --line: #20222f;
+    --line-soft: #1a1c27;
+    --text: #ecedf5;
+    --text-2: #b4b7c7;
+    --muted: #6b6e82;
+    --accent: #a78bfa;
+    --accent-2: #f472b6;
+    --accent-3: #22d3ee;
+    --green: #34d399;
+    --red: #ef4444;
+    --bs: #7c3aed;
+    --tw: #06b6d4;
+    --sc: #cd6799;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--bg-0);
+    color: var(--text);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.01em;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 600px 400px at 12% -10%, rgba(167,139,250,0.18), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 95% 110%, rgba(34,211,238,0.12), transparent 60%),
+      radial-gradient(ellipse 500px 400px at 50% 50%, rgba(205,103,153,0.08), transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 99px; border: 2px solid var(--bg-0); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--bg-3); }
+
+  /* === Header === */
+  header {
+    position: relative;
+    z-index: 5;
+    height: 64px;
+    border-bottom: 1px solid var(--line-soft);
+    background: rgba(13,13,20,0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 22px;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .logo {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: conic-gradient(from 220deg at 50% 50%, var(--bs), var(--tw), var(--sc), var(--bs));
+    position: relative;
+    box-shadow: 0 8px 28px rgba(167,139,250,0.35), inset 0 0 0 1px rgba(255,255,255,0.1);
+  }
+  .logo::after {
+    content: '';
+    position: absolute; inset: 5px;
+    background: var(--bg-1);
+    border-radius: 7px;
+  }
+  .brand-text { display: flex; flex-direction: column; line-height: 1.2; }
+  .brand-title {
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: -0.015em;
+    background: linear-gradient(135deg, #fff 30%, var(--text-2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .brand-sub { font-size: 11px; color: var(--muted); font-weight: 500; letter-spacing: 0.02em; }
+
+  .actions { display: flex; gap: 10px; align-items: center; }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--text-2);
+  }
+  .pill .live {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green), 0 0 0 3px rgba(52,211,153,0.15);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  .pill .live.error {
+    background: var(--red);
+    box-shadow: 0 0 8px var(--red), 0 0 0 3px rgba(239,68,68,0.15);
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.55; transform: scale(0.85); }
+  }
+
+  .btn {
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--bg-2);
+    color: var(--text-2);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.18s cubic-bezier(.4,0,.2,1);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: inherit;
+  }
+  .btn:hover {
+    background: var(--bg-3);
+    border-color: rgba(167,139,250,0.4);
+    color: var(--text);
+    transform: translateY(-1px);
+  }
+  .btn.primary {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+    color: #fff;
+    border: none;
+    font-weight: 600;
+    box-shadow: 0 6px 22px rgba(167,139,250,0.3);
+  }
+  .btn.primary:hover {
+    box-shadow: 0 10px 30px rgba(167,139,250,0.45);
+  }
+  .btn .icon { width: 14px; height: 14px; }
+
+  /* === Layout === */
+  main {
+    position: relative;
+    z-index: 1;
+    height: calc(100vh - 64px);
+    display: grid;
+    grid-template-columns: 44% 1fr;
+    padding: 14px;
+    gap: 14px;
+  }
+
+  .panel {
+    background: linear-gradient(180deg, var(--bg-1), var(--bg-0));
+    border: 1px solid var(--line-soft);
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+
+  /* === Editor === */
+  .editor-head {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 0 6px 0 8px;
+    border-bottom: 1px solid var(--line-soft);
+    gap: 4px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+  }
+  .file-tabs {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+  }
+  .file-tab {
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    background: transparent;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .file-tab:hover { color: var(--text-2); background: var(--bg-2); }
+  .file-tab.active {
+    background: var(--bg-3);
+    color: var(--text);
+    border-color: var(--line);
+  }
+  .file-tab .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .file-tab .dot.bs { background: var(--bs); }
+  .file-tab .dot.tw { background: var(--tw); }
+  .file-tab .dot.sc { background: var(--sc); }
+
+  .editor-meta { margin-left: auto; display: flex; align-items: center; gap: 12px; padding-right: 10px; font-size: 11px; color: var(--muted); }
+  .editor-meta kbd {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--bg-3);
+    border: 1px solid var(--line);
+    color: var(--text-2);
+  }
+
+  .editor-wrap {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+  .editor-pane { display: none; height: 100%; }
+  .editor-pane.active { display: block; }
+  .CodeMirror {
+    height: 100% !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 13px !important;
+    line-height: 1.65 !important;
+    background: transparent !important;
+    color: #d8d9e8 !important;
+  }
+  .CodeMirror-gutters {
+    background: transparent !important;
+    border: none !important;
+    padding-right: 8px;
+  }
+  .CodeMirror-linenumber { color: #3f4255 !important; font-size: 11px !important; }
+  .CodeMirror-cursor { border-left: 2px solid var(--accent) !important; }
+  .CodeMirror-selected { background: rgba(167,139,250,0.18) !important; }
+  .cm-tag { color: #f472b6 !important; }
+  .cm-attribute { color: #a78bfa !important; }
+  .cm-string { color: #34d399 !important; }
+  .cm-bracket, .cm-meta { color: #6b6e82 !important; }
+  .cm-comment { color: #4a4d5e !important; font-style: italic; }
+  .cm-number { color: #fbbf24 !important; }
+  .cm-property { color: #22d3ee !important; }
+  .cm-variable, .cm-variable-2 { color: #cd6799 !important; }
+  .cm-keyword { color: #f472b6 !important; }
+  .cm-atom { color: #fbbf24 !important; }
+
+  .editor-foot {
+    height: 44px;
+    border-top: 1px solid var(--line-soft);
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    gap: 10px;
+    background: rgba(0,0,0,0.2);
+    overflow-x: auto;
+  }
+  .editor-foot::-webkit-scrollbar { height: 0; }
+  .foot-label { font-size: 11px; color: var(--muted); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; flex-shrink: 0; }
+  .chip {
+    flex-shrink: 0;
+    height: 26px;
+    padding: 0 11px;
+    border-radius: 7px;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    color: var(--text-2);
+    font-size: 11.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .chip:hover {
+    border-color: var(--accent);
+    color: var(--text);
+    background: var(--bg-3);
+  }
+  .level-tag {
+    flex-shrink: 0;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: 1px solid;
+    text-transform: uppercase;
+    margin-left: 4px;
+  }
+  .level-tag:first-child { margin-left: 0; }
+  .level-tag.l1 { color: #34d399; border-color: rgba(52,211,153,0.35); background: rgba(52,211,153,0.06); }
+  .level-tag.l2 { color: #fbbf24; border-color: rgba(251,191,36,0.35); background: rgba(251,191,36,0.06); }
+  .level-tag.l3 { color: #f472b6; border-color: rgba(244,114,182,0.35); background: rgba(244,114,182,0.06); }
+  .level-tag.l4 { color: #ef4444; border-color: rgba(239,68,68,0.35); background: rgba(239,68,68,0.06); }
+  .chip.l1:hover { border-color: #34d399; }
+  .chip.l2:hover { border-color: #fbbf24; }
+  .chip.l3:hover { border-color: #f472b6; }
+  .chip.l4:hover { border-color: #ef4444; }
+
+  /* === Preview === */
+  .preview-head {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 0 6px;
+    border-bottom: 1px solid var(--line-soft);
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+    gap: 4px;
+  }
+  .seg {
+    display: inline-flex;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    padding: 3px;
+    margin-left: 8px;
+  }
+  .seg button {
+    height: 28px;
+    padding: 0 12px;
+    border: none;
+    background: transparent;
+    color: var(--text-2);
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: inherit;
+    transition: all 0.18s;
+  }
+  .seg button:hover { color: var(--text); }
+  .seg button.active {
+    background: var(--bg-3);
+    color: var(--text);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+  .seg .sw { width: 8px; height: 8px; border-radius: 50%; }
+  .seg .sw.bs { background: var(--bs); }
+  .seg .sw.tw { background: var(--tw); }
+  .seg .sw.sc { background: var(--sc); }
+  .seg .sw.all { background: conic-gradient(var(--bs), var(--tw), var(--sc), var(--bs)); }
+
+  .preview-meta {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-right: 10px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .device-toggle {
+    display: inline-flex;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 2px;
+  }
+  .device-toggle button {
+    width: 30px; height: 26px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    border-radius: 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .device-toggle button.active {
+    background: var(--bg-3);
+    color: var(--text);
+  }
+  .device-toggle svg { width: 14px; height: 14px; }
+
+  .preview-area {
+    flex: 1;
+    overflow: hidden;
+    display: grid;
+    gap: 12px;
+    padding: 12px;
+  }
+  .preview-area.triple { grid-template-columns: 1fr 1fr 1fr; }
+  .preview-area.single { grid-template-columns: 1fr; }
+
+  .frame {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    border: 1px solid var(--line);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+    position: relative;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .frame:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 50px rgba(0,0,0,0.5);
+  }
+
+  .chrome {
+    height: 34px;
+    background: linear-gradient(180deg, #1c1e2a, #15171f);
+    border-bottom: 1px solid #0a0b10;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .traffic { display: flex; gap: 6px; }
+  .traffic span { width: 11px; height: 11px; border-radius: 50%; }
+  .traffic span:nth-child(1) { background: #ff5f57; }
+  .traffic span:nth-child(2) { background: #febc2e; }
+  .traffic span:nth-child(3) { background: #28c840; }
+  .url {
+    flex: 1;
+    height: 22px;
+    background: rgba(0,0,0,0.4);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.55);
+    font-family: 'JetBrains Mono', monospace;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  .url .fav { width: 10px; height: 10px; border-radius: 2px; }
+  .url .fav.bs { background: var(--bs); }
+  .url .fav.tw { background: var(--tw); }
+  .url .fav.sc { background: var(--sc); }
+
+  .frame-body { flex: 1; position: relative; background: #fff; overflow: hidden; }
+  .frame-body iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: #fff;
+    display: block;
+  }
+
+  .preview-area.device-tablet .frame-body iframe { max-width: 768px; margin: 0 auto; display: block; box-shadow: 0 0 0 9999px #f4f4f6 inset; background: #fff; }
+  .preview-area.device-mobile .frame-body iframe { max-width: 390px; margin: 0 auto; display: block; box-shadow: 0 0 0 9999px #f4f4f6 inset; background: #fff; }
+
+  .frame-tag {
+    position: absolute;
+    top: 9px; right: 12px;
+    background: rgba(255,255,255,0.95);
+    color: #15171f;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 3px 9px;
+    border-radius: 99px;
+    z-index: 5;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+  .frame[data-fw="bootstrap"] .frame-tag { background: var(--bs); color: #fff; }
+  .frame[data-fw="tailwind"] .frame-tag { background: var(--tw); color: #fff; }
+  .frame[data-fw="scss"] .frame-tag { background: var(--sc); color: #fff; }
+
+  /* SCSS error overlay */
+  .scss-error {
+    position: absolute;
+    bottom: 12px; left: 12px; right: 12px;
+    background: rgba(239, 68, 68, 0.95);
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    line-height: 1.5;
+    z-index: 20;
+    display: none;
+    box-shadow: 0 8px 24px rgba(239,68,68,0.4);
+    max-height: 40%;
+    overflow: auto;
+  }
+  .scss-error.show { display: block; }
+  .scss-error b { display: block; margin-bottom: 4px; font-family: 'Inter', sans-serif; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(120%);
+    background: rgba(20,22,30,0.95);
+    backdrop-filter: blur(12px);
+    color: var(--text);
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 100;
+    transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast .check {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--green);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #062118; font-weight: 800; font-size: 11px;
+  }
+
+  @media (max-width: 1280px) {
+    main { grid-template-columns: 50% 1fr; }
+  }
+  @media (max-width: 1100px) {
+    main { grid-template-columns: 1fr; padding: 10px; }
+    .preview-area.triple { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="logo"></div>
+    <div class="brand-text">
+      <span class="brand-title">Pixel-Perfect Fluid Framework Atölyesi</span>
+      <span class="brand-sub">Bootstrap · Tailwind · Saf SCSS · Canlı karşılaştırma stüdyosu</span>
+    </div>
+  </div>
+  <div class="actions">
+    <span class="pill" id="statusPill"><span class="live" id="statusDot"></span> <span id="statusText">Canlı önizleme</span></span>
+    <button class="btn" id="resetBtn">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+      Sıfırla
+    </button>
+    <button class="btn primary" id="copyBtn">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      Kopyala
+    </button>
+  </div>
+</header>
+
+<main>
+
+  <section class="panel editor-panel">
+    <div class="editor-head">
+      <div class="file-tabs">
+        <button class="file-tab active" data-pane="bootstrap"><span class="dot bs"></span>bootstrap.html</button>
+        <button class="file-tab" data-pane="tailwind"><span class="dot tw"></span>tailwind.html</button>
+        <button class="file-tab" data-pane="scssHtml"><span class="dot sc"></span>scss.html</button>
+        <button class="file-tab" data-pane="scssCss"><span class="dot sc"></span>style.scss</button>
+      </div>
+      <div class="editor-meta">
+        <span><kbd>⌘</kbd> + <kbd>1-4</kbd> sekme · <kbd>⌘</kbd> + <kbd>S</kbd> kopyala</span>
+      </div>
+    </div>
+    <div class="editor-wrap">
+      <div class="editor-pane active" id="pane-bootstrap"><textarea id="codeBootstrap"></textarea></div>
+      <div class="editor-pane" id="pane-tailwind"><textarea id="codeTailwind"></textarea></div>
+      <div class="editor-pane" id="pane-scssHtml"><textarea id="codeScssHtml"></textarea></div>
+      <div class="editor-pane" id="pane-scssCss"><textarea id="codeScssCss"></textarea></div>
+    </div>
+    <div class="editor-foot">
+      <span class="foot-label">Şablonlar</span>
+      <div id="snippets" style="display:flex;gap:8px"></div>
+    </div>
+  </section>
+
+  <section class="panel preview-panel">
+    <div class="preview-head">
+      <div class="seg" id="frameworkSeg">
+        <button class="active" data-fw="all"><span class="sw all"></span>Karşılaştırma</button>
+        <button data-fw="bootstrap"><span class="sw bs"></span>Bootstrap</button>
+        <button data-fw="tailwind"><span class="sw tw"></span>Tailwind</button>
+        <button data-fw="scss"><span class="sw sc"></span>Saf SCSS</button>
+      </div>
+      <div class="preview-meta">
+        <div class="device-toggle" id="deviceSeg">
+          <button class="active" data-d="desktop" title="Masaüstü">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 20h8M12 18v2"/></svg>
+          </button>
+          <button data-d="tablet" title="Tablet">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M11 18h2"/></svg>
+          </button>
+          <button data-d="mobile" title="Mobil">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="preview-area triple" id="previewArea">
+      <div class="frame" data-fw="bootstrap">
+        <div class="chrome">
+          <div class="traffic"><span></span><span></span><span></span></div>
+          <div class="url"><span class="fav bs"></span>bootstrap.preview</div>
+        </div>
+        <div class="frame-tag">Bootstrap 5</div>
+        <div class="frame-body"><iframe id="iframe-bootstrap" sandbox="allow-scripts"></iframe></div>
+      </div>
+      <div class="frame" data-fw="tailwind">
+        <div class="chrome">
+          <div class="traffic"><span></span><span></span><span></span></div>
+          <div class="url"><span class="fav tw"></span>tailwind.preview</div>
+        </div>
+        <div class="frame-tag">Tailwind</div>
+        <div class="frame-body"><iframe id="iframe-tailwind" sandbox="allow-scripts"></iframe></div>
+      </div>
+      <div class="frame" data-fw="scss">
+        <div class="chrome">
+          <div class="traffic"><span></span><span></span><span></span></div>
+          <div class="url"><span class="fav sc"></span>scss.preview</div>
+        </div>
+        <div class="frame-tag">Saf SCSS</div>
+        <div class="frame-body">
+          <iframe id="iframe-scss" sandbox="allow-scripts"></iframe>
+          <div class="scss-error" id="scssError"><b>SCSS Derleme Hatası</b><span id="scssErrorText"></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast"><span class="check">✓</span><span id="toastText">Kopyalandı</span></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closetag.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sass.js@0.11.1/dist/sass.sync.js"></script>
+
+<script>
+const FRAMEWORKS = {
+  bootstrap: {
+    head: `<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer><\/script>`
+  },
+  tailwind: {
+    head: `<script src="https://cdn.tailwindcss.com"><\/script>`
+  },
+  scss: {
+    head: ''
+  }
+};
+
+/* Her framework için ayrı HTML — atölyede aynı tasarımı 3 farklı yolla yazıyoruz. */
+
+const DEFAULT_BOOTSTRAP = `<!-- Bootstrap 5 — yardımcı sınıflar + bileşenler -->
+<section class="container py-5" style="max-width:680px">
+
+  <span class="badge bg-primary-subtle text-primary fw-semibold px-3 py-2 rounded-pill">
+    ATÖLYE · 2026
+  </span>
+
+  <h1 class="display-5 fw-bold mt-3 mb-2">
+    Bootstrap ile aynı tasarım.
+  </h1>
+
+  <p class="lead text-secondary mb-4">
+    Bootstrap 5 — utility-first değil, hazır bileşen kütüphanesi.
+    Sınıflar anlamsal: <code>.btn</code>, <code>.card</code>, <code>.lead</code>.
+  </p>
+
+  <div class="d-flex gap-2 flex-wrap">
+    <button class="btn btn-primary px-4 py-2 fw-semibold">Kayıt Ol</button>
+    <button class="btn btn-outline-secondary px-4 py-2">Detaylar</button>
+  </div>
+
+</section>`;
+
+const DEFAULT_TAILWIND = `<!-- Tailwind CSS — utility-first yaklaşımı -->
+<section class="max-w-2xl mx-auto py-12 px-6">
+
+  <span class="inline-block bg-indigo-50 text-indigo-700 font-semibold px-3 py-1.5 rounded-full text-xs tracking-wide">
+    ATÖLYE · 2026
+  </span>
+
+  <h1 class="text-4xl font-extrabold mt-3 mb-2 tracking-tight">
+    Tailwind ile aynı tasarım.
+  </h1>
+
+  <p class="text-slate-500 text-base leading-relaxed mb-6">
+    Tailwind — atomik utility class'lar. Her stil HTML üzerinde,
+    CSS dosyası yazmadan tasarım kuruyorsun.
+  </p>
+
+  <div class="flex gap-2 flex-wrap">
+    <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg font-semibold transition">
+      Kayıt Ol
+    </button>
+    <button class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-5 py-2 rounded-lg transition">
+      Detaylar
+    </button>
+  </div>
+
+</section>`;
+
+const DEFAULT_SCSS_HTML = `<!-- Saf SCSS — anlamsal HTML, sınıflar bileşene özel -->
+<section class="hero">
+
+  <span class="hero__badge">ATÖLYE · 2026</span>
+
+  <h1 class="hero__title">SCSS ile aynı tasarım.</h1>
+
+  <p class="hero__sub">
+    Saf SCSS — değişken, nesting ve mixin'lerle elle yazılmış stil.
+    Hiçbir framework yok; her şey tarayıcıda derlenir.
+  </p>
+
+  <div class="hero__actions">
+    <button class="btn btn--primary">Kayıt Ol</button>
+    <button class="btn btn--ghost">Detaylar</button>
+  </div>
+
+</section>`;
+
+const DEFAULT_SCSS_CSS = `// Saf SCSS — BEM benzeri anlamsal sınıflar + değişken/mixin
+
+$primary: #4f46e5;
+$primary-soft: #eef2ff;
+$gray-300: #cbd5e1;
+$gray-500: #64748b;
+$gray-700: #334155;
+$radius: 10px;
+
+@mixin button-base {
+  padding: 10px 20px;
+  border-radius: $radius;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  margin: 0;
+  background: #fff;
+  color: #0f172a;
+}
+
+.hero {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 48px 24px;
+
+  &__badge {
+    display: inline-block;
+    background: $primary-soft;
+    color: $primary;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  &__title {
+    font-size: 38px;
+    font-weight: 800;
+    margin: 14px 0 8px;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+
+  &__sub {
+    color: $gray-500;
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+}
+
+.btn {
+  @include button-base;
+
+  &--primary {
+    background: $primary;
+    color: white;
+
+    &:hover { background: darken($primary, 8%); }
+  }
+
+  &--ghost {
+    background: white;
+    border-color: $gray-300;
+    color: $gray-700;
+
+    &:hover { background: #f8fafc; }
+  }
+}`;
+
+/* Her şablon: 4 dosya - bootstrap.html, tailwind.html, scss.html, style.scss */
+const SAMPLES = {
+  button: {
+    bootstrap: `<!-- Bootstrap butonlar -->
+<div class="container py-5 d-flex flex-wrap gap-2">
+  <button class="btn btn-primary">Birincil</button>
+  <button class="btn btn-secondary">İkincil</button>
+  <button class="btn btn-success">Başarı</button>
+  <button class="btn btn-outline-primary">Outline</button>
+  <button class="btn btn-link">Link</button>
+  <button class="btn btn-primary btn-sm">Küçük</button>
+  <button class="btn btn-primary btn-lg">Büyük</button>
+</div>`,
+    tailwind: `<!-- Tailwind butonlar -->
+<div class="max-w-3xl mx-auto py-12 px-6 flex flex-wrap gap-2">
+  <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md font-medium transition">Birincil</button>
+  <button class="bg-slate-200 hover:bg-slate-300 text-slate-800 px-4 py-2 rounded-md font-medium transition">İkincil</button>
+  <button class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md font-medium transition">Başarı</button>
+  <button class="border border-indigo-600 text-indigo-600 hover:bg-indigo-50 px-4 py-2 rounded-md font-medium transition">Outline</button>
+  <button class="text-indigo-600 hover:underline px-4 py-2 font-medium">Link</button>
+  <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 text-sm rounded-md font-medium transition">Küçük</button>
+  <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 text-lg rounded-md font-medium transition">Büyük</button>
+</div>`,
+    scssHtml: `<!-- Saf SCSS butonlar -->
+<div class="btn-row">
+  <button class="btn btn--primary">Birincil</button>
+  <button class="btn btn--secondary">İkincil</button>
+  <button class="btn btn--success">Başarı</button>
+  <button class="btn btn--outline">Outline</button>
+  <button class="btn btn--link">Link</button>
+  <button class="btn btn--primary btn--sm">Küçük</button>
+  <button class="btn btn--primary btn--lg">Büyük</button>
+</div>`,
+    scssCss: `// Saf SCSS — buton sistemi (variant + size mixin)
+$colors: (
+  primary:   (#4f46e5, #fff),
+  secondary: (#e2e8f0, #1e293b),
+  success:   (#16a34a, #fff)
+);
+
+@mixin btn-variant($bg, $fg) {
+  background: $bg;
+  color: $fg;
+  border: 1px solid $bg;
+  &:hover { background: darken($bg, 6%); border-color: darken($bg, 6%); }
+}
+
+body { margin: 0; font-family: 'Inter', sans-serif; }
+
+.btn-row {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+  background: transparent;
+  border: 1px solid transparent;
+
+  @each $name, $pair in $colors {
+    &--#{$name} { @include btn-variant(nth($pair, 1), nth($pair, 2)); }
+  }
+
+  &--outline {
+    background: transparent;
+    color: #4f46e5;
+    border: 1px solid #4f46e5;
+    &:hover { background: rgba(#4f46e5, 0.08); }
+  }
+
+  &--link {
+    background: transparent;
+    color: #4f46e5;
+    border: none;
+    padding: 8px 12px;
+    &:hover { text-decoration: underline; }
+  }
+
+  &--sm { padding: 4px 12px; font-size: 12px; }
+  &--lg { padding: 12px 20px; font-size: 16px; }
+}`
+  },
+
+  badge: {
+    bootstrap: `<!-- Bootstrap badge -->
+<div class="container py-5 d-flex flex-wrap gap-2 align-items-center">
+  <span class="badge bg-primary">Yeni</span>
+  <span class="badge bg-success">Aktif</span>
+  <span class="badge bg-warning text-dark">Bekleniyor</span>
+  <span class="badge bg-danger">Kritik</span>
+  <span class="badge rounded-pill bg-secondary">Pill</span>
+  <span class="badge text-bg-info">Bilgi</span>
+  <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Soft</span>
+</div>`,
+    tailwind: `<!-- Tailwind badge -->
+<div class="max-w-3xl mx-auto py-12 px-6 flex flex-wrap gap-2 items-center">
+  <span class="bg-indigo-600 text-white text-xs font-semibold px-2 py-1 rounded">Yeni</span>
+  <span class="bg-emerald-600 text-white text-xs font-semibold px-2 py-1 rounded">Aktif</span>
+  <span class="bg-amber-400 text-amber-900 text-xs font-semibold px-2 py-1 rounded">Bekleniyor</span>
+  <span class="bg-red-600 text-white text-xs font-semibold px-2 py-1 rounded">Kritik</span>
+  <span class="bg-slate-500 text-white text-xs font-semibold px-3 py-1 rounded-full">Pill</span>
+  <span class="bg-cyan-500 text-white text-xs font-semibold px-2 py-1 rounded">Bilgi</span>
+  <span class="bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-semibold px-2 py-1 rounded">Soft</span>
+</div>`,
+    scssHtml: `<!-- Saf SCSS badge -->
+<div class="badge-row">
+  <span class="badge badge--primary">Yeni</span>
+  <span class="badge badge--success">Aktif</span>
+  <span class="badge badge--warning">Bekleniyor</span>
+  <span class="badge badge--danger">Kritik</span>
+  <span class="badge badge--secondary badge--pill">Pill</span>
+  <span class="badge badge--info">Bilgi</span>
+  <span class="badge badge--soft">Soft</span>
+</div>`,
+    scssCss: `// Saf SCSS — badge sistemi
+$variants: (
+  primary:   #4f46e5,
+  success:   #16a34a,
+  warning:   #f59e0b,
+  danger:    #dc2626,
+  secondary: #64748b,
+  info:      #06b6d4
+);
+
+body { margin: 0; font-family: 'Inter', sans-serif; }
+
+.badge-row {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+
+  @each $name, $color in $variants {
+    &--#{$name} {
+      background: $color;
+      color: if($name == warning, darken($color, 30%), #fff);
+    }
+  }
+
+  &--pill { border-radius: 999px; padding: 4px 14px; }
+
+  &--soft {
+    background: rgba(#4f46e5, 0.1);
+    color: #4f46e5;
+    border: 1px solid rgba(#4f46e5, 0.25);
+  }
+}`
+  },
+
+  alert: {
+    bootstrap: `<!-- Bootstrap alert -->
+<div class="container py-5" style="max-width:560px">
+  <div class="alert alert-success d-flex align-items-center" role="alert">
+    <strong class="me-2">✓</strong> Kayıt başarılı! Mailini kontrol et.
+  </div>
+  <div class="alert alert-warning" role="alert">
+    <strong>Dikkat:</strong> Atölye kontenjanı dolmak üzere.
+  </div>
+  <div class="alert alert-danger" role="alert">
+    <strong>Hata:</strong> Bağlantı kurulamadı, tekrar dene.
+  </div>
+  <div class="alert alert-info mb-0" role="alert">
+    <strong>Bilgi:</strong> Atölye 19:00'da başlayacak.
+  </div>
+</div>`,
+    tailwind: `<!-- Tailwind alert -->
+<div class="max-w-xl mx-auto py-12 px-6 space-y-3">
+  <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg flex items-start gap-2">
+    <span class="font-bold">✓</span><span><strong>Başarılı:</strong> Kayıt tamamlandı.</span>
+  </div>
+  <div class="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg">
+    <strong>Dikkat:</strong> Atölye kontenjanı dolmak üzere.
+  </div>
+  <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
+    <strong>Hata:</strong> Bağlantı kurulamadı.
+  </div>
+  <div class="bg-cyan-50 border border-cyan-200 text-cyan-800 px-4 py-3 rounded-lg">
+    <strong>Bilgi:</strong> Atölye 19:00'da başlayacak.
+  </div>
+</div>`,
+    scssHtml: `<!-- Saf SCSS alert -->
+<div class="alerts">
+  <div class="alert alert--success">
+    <span class="alert__icon">✓</span>
+    <div><strong>Başarılı:</strong> Kayıt tamamlandı.</div>
+  </div>
+  <div class="alert alert--warning">
+    <strong>Dikkat:</strong> Atölye kontenjanı dolmak üzere.
+  </div>
+  <div class="alert alert--danger">
+    <strong>Hata:</strong> Bağlantı kurulamadı.
+  </div>
+  <div class="alert alert--info">
+    <strong>Bilgi:</strong> Atölye 19:00'da başlayacak.
+  </div>
+</div>`,
+    scssCss: `// Saf SCSS — alert
+$alerts: (
+  success: #16a34a,
+  warning: #f59e0b,
+  danger:  #dc2626,
+  info:    #06b6d4
+);
+
+body { margin: 0; font-family: 'Inter', sans-serif; background: #fff; }
+
+.alerts {
+  max-width: 560px;
+  margin: 48px auto;
+  padding: 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  border: 1px solid;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+
+  @each $name, $color in $alerts {
+    &--#{$name} {
+      background: rgba($color, 0.08);
+      border-color: rgba($color, 0.3);
+      color: darken($color, 8%);
+    }
+  }
+
+  &__icon { font-weight: 700; }
+}`
+  },
+
+  hero: {
+    bootstrap: DEFAULT_BOOTSTRAP,
+    tailwind: DEFAULT_TAILWIND,
+    scssHtml: DEFAULT_SCSS_HTML,
+    scssCss: DEFAULT_SCSS_CSS
+  },
+  card: {
+    bootstrap: `<!-- Bootstrap kart -->
+<div class="container py-5" style="max-width:480px">
+  <div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+      <h3 class="card-title fw-bold mb-2">Atölye Kartı</h3>
+      <p class="card-text text-secondary mb-3">
+        Bootstrap'in hazır <code>.card</code> bileşeni — minimum sınıfla profesyonel görünüm.
+      </p>
+      <button class="btn btn-primary px-4 py-2">Aksiyon</button>
+    </div>
+  </div>
+</div>`,
+    tailwind: `<!-- Tailwind kart -->
+<div class="max-w-md mx-auto py-12 px-4">
+  <div class="bg-white rounded-2xl shadow-md p-6">
+    <h3 class="text-xl font-bold mb-2">Atölye Kartı</h3>
+    <p class="text-slate-500 text-sm leading-relaxed mb-4">
+      Tailwind ile her şey utility — gölge, padding, radius hepsi class olarak.
+    </p>
+    <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg font-semibold transition">
+      Aksiyon
+    </button>
+  </div>
+</div>`,
+    scssHtml: `<!-- Saf SCSS kart -->
+<div class="page">
+  <article class="card">
+    <h3 class="card__title">Atölye Kartı</h3>
+    <p class="card__text">
+      Saf SCSS — anlamsal HTML, stil tamamen .scss dosyasında.
+    </p>
+    <button class="btn btn--primary">Aksiyon</button>
+  </article>
+</div>`,
+    scssCss: `// Saf SCSS — kart
+$primary: #4f46e5;
+$gray-500: #64748b;
+
+body { margin: 0; font-family: 'Inter', sans-serif; background: #f8fafc; }
+
+.page { padding: 48px 24px; min-height: 100vh; }
+
+.card {
+  max-width: 420px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 24px;
+  border-radius: 14px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+
+  &__title {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 8px;
+  }
+  &__text {
+    color: $gray-500;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0 0 16px;
+  }
+}
+
+.btn {
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+
+  &--primary {
+    background: $primary;
+    color: #fff;
+    &:hover { background: darken($primary, 8%); }
+  }
+}`
+  },
+  grid: {
+    bootstrap: `<!-- Bootstrap grid -->
+<div class="container py-4">
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div class="bg-primary-subtle text-primary fw-semibold rounded-3 p-4 text-center">Sütun 1</div>
+    </div>
+    <div class="col-md-4">
+      <div class="bg-warning-subtle text-warning-emphasis fw-semibold rounded-3 p-4 text-center">Sütun 2</div>
+    </div>
+    <div class="col-md-4">
+      <div class="bg-danger-subtle text-danger-emphasis fw-semibold rounded-3 p-4 text-center">Sütun 3</div>
+    </div>
+  </div>
+</div>`,
+    tailwind: `<!-- Tailwind grid -->
+<div class="max-w-5xl mx-auto py-8 px-4">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="bg-indigo-50 text-indigo-700 font-semibold rounded-xl py-6 text-center">Sütun 1</div>
+    <div class="bg-amber-50 text-amber-700 font-semibold rounded-xl py-6 text-center">Sütun 2</div>
+    <div class="bg-pink-50 text-pink-700 font-semibold rounded-xl py-6 text-center">Sütun 3</div>
+  </div>
+</div>`,
+    scssHtml: `<!-- Saf SCSS grid -->
+<div class="grid">
+  <div class="grid__item">Sütun 1</div>
+  <div class="grid__item">Sütun 2</div>
+  <div class="grid__item">Sütun 3</div>
+</div>`,
+    scssCss: `// Saf SCSS — flex grid + harita iterasyonu
+body { margin: 0; font-family: 'Inter', sans-serif; }
+
+$colors: (
+  1: (#eef2ff, #4338ca),
+  2: (#fef3c7, #92400e),
+  3: (#fce7f3, #9d174d)
+);
+
+.grid {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 32px;
+  max-width: 1024px;
+  margin: 0 auto;
+
+  &__item {
+    flex: 1;
+    min-width: 200px;
+    padding: 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    text-align: center;
+
+    @each $i, $pair in $colors {
+      &:nth-child(#{$i}) {
+        background: nth($pair, 1);
+        color: nth($pair, 2);
+      }
+    }
+  }
+}`
+  },
+  form: {
+    bootstrap: `<!-- Bootstrap form -->
+<div class="container py-5" style="max-width:460px">
+  <h3 class="fw-bold mb-4">Giriş Yap</h3>
+  <div class="mb-3">
+    <label class="form-label">E-posta</label>
+    <input class="form-control" type="email" placeholder="ornek@divizyon.org">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Şifre</label>
+    <input class="form-control" type="password">
+  </div>
+  <button class="btn btn-primary w-100 fw-semibold py-2">Giriş</button>
+</div>`,
+    tailwind: `<!-- Tailwind form -->
+<div class="max-w-md mx-auto py-12 px-4">
+  <h3 class="text-xl font-bold mb-5">Giriş Yap</h3>
+  <div class="mb-4">
+    <label class="block text-sm font-medium text-slate-700 mb-1.5">E-posta</label>
+    <input class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" type="email" placeholder="ornek@divizyon.org">
+  </div>
+  <div class="mb-5">
+    <label class="block text-sm font-medium text-slate-700 mb-1.5">Şifre</label>
+    <input class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" type="password">
+  </div>
+  <button class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-lg font-semibold transition">
+    Giriş
+  </button>
+</div>`,
+    scssHtml: `<!-- Saf SCSS form -->
+<form class="form">
+  <h3 class="form__title">Giriş Yap</h3>
+  <div class="form__row">
+    <label class="form__label">E-posta</label>
+    <input class="form__input" type="email" placeholder="ornek@divizyon.org">
+  </div>
+  <div class="form__row">
+    <label class="form__label">Şifre</label>
+    <input class="form__input" type="password">
+  </div>
+  <button class="form__submit">Giriş</button>
+</form>`,
+    scssCss: `// Saf SCSS — form
+$primary: #4f46e5;
+$border: #cbd5e1;
+$gray-700: #334155;
+
+body { margin: 0; font-family: 'Inter', sans-serif; }
+
+.form {
+  max-width: 460px;
+  margin: 48px auto;
+  padding: 0 16px;
+
+  &__title {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 22px;
+  }
+
+  &__row { margin-bottom: 16px; }
+
+  &__label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: $gray-700;
+  }
+
+  &__input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid $border;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.15s;
+    box-sizing: border-box;
+
+    &:focus {
+      border-color: $primary;
+      box-shadow: 0 0 0 3px rgba($primary, 0.15);
+    }
+  }
+
+  &__submit {
+    width: 100%;
+    padding: 10px;
+    background: $primary;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 6px;
+
+    &:hover { background: darken($primary, 6%); }
+  }
+}`
+  },
+  modal: {
+    bootstrap: `<!-- Bootstrap modal (statik render) -->
+<div style="background:rgba(15,23,42,0.5);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:440px;margin:0">
+    <div class="modal-content shadow-lg">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Atölyeyi Onayla</h5>
+        <button class="btn-close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-0 text-secondary">Pixel-Perfect Fluid Framework Atölyesi'ne kaydını tamamlamak istiyor musun?</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-light">Vazgeç</button>
+        <button class="btn btn-primary">Kaydı Onayla</button>
+      </div>
+    </div>
+  </div>
+</div>`,
+    tailwind: `<!-- Tailwind modal (statik render) -->
+<div class="bg-slate-900/50 min-h-screen flex items-center justify-center p-5">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+      <h5 class="font-bold text-slate-900">Atölyeyi Onayla</h5>
+      <button class="text-slate-400 hover:text-slate-700 text-xl leading-none">×</button>
+    </div>
+    <div class="px-6 py-5">
+      <p class="text-slate-500 leading-relaxed">Pixel-Perfect Fluid Framework Atölyesi'ne kaydını tamamlamak istiyor musun?</p>
+    </div>
+    <div class="px-6 py-4 bg-slate-50 flex justify-end gap-2">
+      <button class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-lg font-medium transition">Vazgeç</button>
+      <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-semibold transition">Kaydı Onayla</button>
+    </div>
+  </div>
+</div>`,
+    scssHtml: `<!-- Saf SCSS modal -->
+<div class="overlay">
+  <div class="modal">
+    <header class="modal__head">
+      <h5 class="modal__title">Atölyeyi Onayla</h5>
+      <button class="modal__close">×</button>
+    </header>
+    <div class="modal__body">
+      <p>Pixel-Perfect Fluid Framework Atölyesi'ne kaydını tamamlamak istiyor musun?</p>
+    </div>
+    <footer class="modal__foot">
+      <button class="btn btn--ghost">Vazgeç</button>
+      <button class="btn btn--primary">Kaydı Onayla</button>
+    </footer>
+  </div>
+</div>`,
+    scssCss: `// Saf SCSS — modal
+$primary: #4f46e5;
+$gray-100: #f8fafc;
+$gray-200: #e2e8f0;
+$gray-300: #cbd5e1;
+$gray-500: #64748b;
+$gray-900: #0f172a;
+
+body { margin: 0; font-family: 'Inter', sans-serif; }
+
+.overlay {
+  background: rgba(#0f172a, 0.5);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 440px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    border-bottom: 1px solid $gray-200;
+  }
+
+  &__title {
+    font-weight: 700;
+    margin: 0;
+    color: $gray-900;
+  }
+
+  &__close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    line-height: 1;
+    color: $gray-500;
+    cursor: pointer;
+    &:hover { color: $gray-900; }
+  }
+
+  &__body {
+    padding: 20px 24px;
+    p { margin: 0; color: $gray-500; line-height: 1.6; }
+  }
+
+  &__foot {
+    padding: 14px 24px;
+    background: $gray-100;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &--primary {
+    background: $primary;
+    color: #fff;
+    border: none;
+    font-weight: 600;
+    &:hover { background: darken($primary, 6%); }
+  }
+
+  &--ghost {
+    background: #fff;
+    border: 1px solid $gray-300;
+    color: #334155;
+    &:hover { background: $gray-100; }
+  }
+}`
+  },
+
+  navbar: {
+    bootstrap: `<!-- Bootstrap navbar -->
+<nav class="navbar navbar-expand-lg bg-white shadow-sm border-bottom">
+  <div class="container-fluid px-4">
+    <a class="navbar-brand fw-bold" href="#">⬢ Divizyon</a>
+    <ul class="navbar-nav me-auto ms-4">
+      <li class="nav-item"><a class="nav-link" href="#">Ana Sayfa</a></li>
+      <li class="nav-item"><a class="nav-link" href="#">Etkinlikler</a></li>
+      <li class="nav-item"><a class="nav-link" href="#">Atölyeler</a></li>
+    </ul>
+    <button class="btn btn-primary px-4">Katıl</button>
+  </div>
+</nav>`,
+    tailwind: `<!-- Tailwind navbar -->
+<nav class="bg-white shadow-sm border-b border-slate-100 px-6 py-3.5 flex items-center justify-between">
+  <a href="#" class="text-lg font-extrabold text-slate-900">⬢ Divizyon</a>
+  <div class="flex gap-6">
+    <a href="#" class="text-sm font-medium text-slate-700 hover:text-indigo-600 transition">Ana Sayfa</a>
+    <a href="#" class="text-sm font-medium text-slate-700 hover:text-indigo-600 transition">Etkinlikler</a>
+    <a href="#" class="text-sm font-medium text-slate-700 hover:text-indigo-600 transition">Atölyeler</a>
+  </div>
+  <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition">
+    Katıl
+  </button>
+</nav>`,
+    scssHtml: `<!-- Saf SCSS navbar -->
+<nav class="navbar">
+  <a href="#" class="navbar__brand">⬢ Divizyon</a>
+  <ul class="navbar__links">
+    <li><a href="#" class="navbar__link">Ana Sayfa</a></li>
+    <li><a href="#" class="navbar__link">Etkinlikler</a></li>
+    <li><a href="#" class="navbar__link">Atölyeler</a></li>
+  </ul>
+  <button class="navbar__cta">Katıl</button>
+</nav>`,
+    scssCss: `// Saf SCSS — navbar
+$primary: #4f46e5;
+$text: #334155;
+
+body { margin: 0; font-family: 'Inter', sans-serif; }
+
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+
+  &__brand {
+    font-weight: 800;
+    font-size: 18px;
+    color: #0f172a;
+    text-decoration: none;
+  }
+
+  &__links {
+    display: flex;
+    gap: 22px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  &__link {
+    color: $text;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.15s;
+
+    &:hover { color: $primary; }
+  }
+
+  &__cta {
+    background: $primary;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+
+    &:hover { background: darken($primary, 6%); }
+  }
+}`
+  },
+
+  pricing: {
+    bootstrap: `<!-- Bootstrap pricing -->
+<div class="container py-5">
+  <div class="row g-4 justify-content-center">
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body p-4">
+          <h5 class="fw-bold">Başlangıç</h5>
+          <p class="text-secondary small">Bireysel kullanım için</p>
+          <h2 class="fw-bold mt-3">₺0<small class="text-muted fs-6 fw-normal">/ay</small></h2>
+          <ul class="list-unstyled small mt-3 mb-4">
+            <li class="mb-2">✓ 3 atölye/ay</li>
+            <li class="mb-2">✓ Topluluk erişimi</li>
+            <li class="mb-2 text-muted">— Mentor desteği</li>
+          </ul>
+          <button class="btn btn-outline-primary w-100">Ücretsiz Başla</button>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100 shadow border-primary">
+        <div class="card-body p-4">
+          <span class="badge bg-primary mb-2">Popüler</span>
+          <h5 class="fw-bold">Pro</h5>
+          <p class="text-secondary small">Ekipler için</p>
+          <h2 class="fw-bold mt-3">₺199<small class="text-muted fs-6 fw-normal">/ay</small></h2>
+          <ul class="list-unstyled small mt-3 mb-4">
+            <li class="mb-2">✓ Sınırsız atölye</li>
+            <li class="mb-2">✓ Birebir mentor</li>
+            <li class="mb-2">✓ Sertifika</li>
+          </ul>
+          <button class="btn btn-primary w-100">Pro'ya Geç</button>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body p-4">
+          <h5 class="fw-bold">Kurumsal</h5>
+          <p class="text-secondary small">Şirketler için</p>
+          <h2 class="fw-bold mt-3">Özel</h2>
+          <ul class="list-unstyled small mt-3 mb-4">
+            <li class="mb-2">✓ Özel atölye</li>
+            <li class="mb-2">✓ SSO + faturalama</li>
+            <li class="mb-2">✓ SLA</li>
+          </ul>
+          <button class="btn btn-outline-primary w-100">İletişim</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>`,
+    tailwind: `<!-- Tailwind pricing -->
+<div class="max-w-6xl mx-auto py-12 px-6">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col">
+      <h5 class="font-bold">Başlangıç</h5>
+      <p class="text-slate-500 text-sm">Bireysel kullanım için</p>
+      <h2 class="text-3xl font-extrabold mt-4">₺0<span class="text-base font-normal text-slate-400">/ay</span></h2>
+      <ul class="text-sm space-y-2 mt-4 mb-6">
+        <li>✓ 3 atölye/ay</li>
+        <li>✓ Topluluk erişimi</li>
+        <li class="text-slate-400">— Mentor desteği</li>
+      </ul>
+      <button class="mt-auto border border-indigo-600 text-indigo-600 hover:bg-indigo-50 py-2 rounded-lg font-semibold transition">Ücretsiz Başla</button>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-lg ring-2 ring-indigo-600 p-6 flex flex-col relative">
+      <span class="absolute -top-3 left-6 bg-indigo-600 text-white text-xs font-semibold px-2 py-1 rounded">Popüler</span>
+      <h5 class="font-bold">Pro</h5>
+      <p class="text-slate-500 text-sm">Ekipler için</p>
+      <h2 class="text-3xl font-extrabold mt-4">₺199<span class="text-base font-normal text-slate-400">/ay</span></h2>
+      <ul class="text-sm space-y-2 mt-4 mb-6">
+        <li>✓ Sınırsız atölye</li>
+        <li>✓ Birebir mentor</li>
+        <li>✓ Sertifika</li>
+      </ul>
+      <button class="mt-auto bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-semibold transition">Pro'ya Geç</button>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col">
+      <h5 class="font-bold">Kurumsal</h5>
+      <p class="text-slate-500 text-sm">Şirketler için</p>
+      <h2 class="text-3xl font-extrabold mt-4">Özel</h2>
+      <ul class="text-sm space-y-2 mt-4 mb-6">
+        <li>✓ Özel atölye</li>
+        <li>✓ SSO + faturalama</li>
+        <li>✓ SLA</li>
+      </ul>
+      <button class="mt-auto border border-indigo-600 text-indigo-600 hover:bg-indigo-50 py-2 rounded-lg font-semibold transition">İletişim</button>
+    </div>
+
+  </div>
+</div>`,
+    scssHtml: `<!-- Saf SCSS pricing -->
+<div class="pricing">
+  <div class="plan">
+    <h5 class="plan__name">Başlangıç</h5>
+    <p class="plan__sub">Bireysel kullanım için</p>
+    <div class="plan__price">₺0<span>/ay</span></div>
+    <ul class="plan__features">
+      <li>✓ 3 atölye/ay</li>
+      <li>✓ Topluluk erişimi</li>
+      <li class="muted">— Mentor desteği</li>
+    </ul>
+    <button class="btn btn--outline">Ücretsiz Başla</button>
+  </div>
+  <div class="plan plan--featured">
+    <span class="plan__tag">Popüler</span>
+    <h5 class="plan__name">Pro</h5>
+    <p class="plan__sub">Ekipler için</p>
+    <div class="plan__price">₺199<span>/ay</span></div>
+    <ul class="plan__features">
+      <li>✓ Sınırsız atölye</li>
+      <li>✓ Birebir mentor</li>
+      <li>✓ Sertifika</li>
+    </ul>
+    <button class="btn btn--primary">Pro'ya Geç</button>
+  </div>
+  <div class="plan">
+    <h5 class="plan__name">Kurumsal</h5>
+    <p class="plan__sub">Şirketler için</p>
+    <div class="plan__price">Özel</div>
+    <ul class="plan__features">
+      <li>✓ Özel atölye</li>
+      <li>✓ SSO + faturalama</li>
+      <li>✓ SLA</li>
+    </ul>
+    <button class="btn btn--outline">İletişim</button>
+  </div>
+</div>`,
+    scssCss: `// Saf SCSS — pricing kartları
+$primary: #4f46e5;
+$border: #e2e8f0;
+$gray-500: #64748b;
+$gray-400: #94a3b8;
+
+body { margin: 0; font-family: 'Inter', sans-serif; background: #f8fafc; }
+
+.pricing {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 48px 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+}
+
+.plan {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid $border;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+
+  &--featured {
+    border-color: $primary;
+    box-shadow: 0 12px 32px rgba($primary, 0.15);
+  }
+
+  &__tag {
+    position: absolute;
+    top: -12px;
+    left: 24px;
+    background: $primary;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 4px;
+  }
+
+  &__name { margin: 0; font-weight: 700; }
+  &__sub { color: $gray-500; font-size: 13px; margin: 2px 0 0; }
+  &__price {
+    font-size: 32px;
+    font-weight: 800;
+    margin: 16px 0 0;
+    span { font-size: 14px; font-weight: 400; color: $gray-400; }
+  }
+  &__features {
+    list-style: none;
+    padding: 0;
+    margin: 16px 0 24px;
+    font-size: 14px;
+    li { padding: 4px 0; }
+    .muted { color: $gray-400; }
+  }
+}
+
+.btn {
+  margin-top: auto;
+  padding: 10px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &--primary {
+    background: $primary;
+    color: #fff;
+    border: none;
+    &:hover { background: darken($primary, 6%); }
+  }
+
+  &--outline {
+    background: transparent;
+    border: 1px solid $primary;
+    color: $primary;
+    &:hover { background: rgba($primary, 0.06); }
+  }
+}`
+  },
+
+  stats: {
+    bootstrap: `<!-- Bootstrap stats -->
+<div class="container py-5">
+  <div class="row g-4 text-center">
+    <div class="col-6 col-md-3">
+      <div class="p-4 bg-light rounded-3">
+        <div class="display-5 fw-bold text-primary">2.4K</div>
+        <div class="text-secondary small mt-2">Aktif Üye</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="p-4 bg-light rounded-3">
+        <div class="display-5 fw-bold text-primary">147</div>
+        <div class="text-secondary small mt-2">Atölye Tamamlandı</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="p-4 bg-light rounded-3">
+        <div class="display-5 fw-bold text-primary">38</div>
+        <div class="text-secondary small mt-2">Mentor</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="p-4 bg-light rounded-3">
+        <div class="display-5 fw-bold text-primary">96%</div>
+        <div class="text-secondary small mt-2">Memnuniyet</div>
+      </div>
+    </div>
+  </div>
+</div>`,
+    tailwind: `<!-- Tailwind stats -->
+<div class="max-w-5xl mx-auto py-12 px-6">
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-slate-50 rounded-2xl p-6 text-center">
+      <div class="text-4xl font-extrabold text-indigo-600">2.4K</div>
+      <div class="text-slate-500 text-sm mt-2">Aktif Üye</div>
+    </div>
+    <div class="bg-slate-50 rounded-2xl p-6 text-center">
+      <div class="text-4xl font-extrabold text-indigo-600">147</div>
+      <div class="text-slate-500 text-sm mt-2">Atölye Tamamlandı</div>
+    </div>
+    <div class="bg-slate-50 rounded-2xl p-6 text-center">
+      <div class="text-4xl font-extrabold text-indigo-600">38</div>
+      <div class="text-slate-500 text-sm mt-2">Mentor</div>
+    </div>
+    <div class="bg-slate-50 rounded-2xl p-6 text-center">
+      <div class="text-4xl font-extrabold text-indigo-600">96%</div>
+      <div class="text-slate-500 text-sm mt-2">Memnuniyet</div>
+    </div>
+  </div>
+</div>`,
+    scssHtml: `<!-- Saf SCSS stats -->
+<div class="stats">
+  <div class="stat"><div class="stat__num">2.4K</div><div class="stat__label">Aktif Üye</div></div>
+  <div class="stat"><div class="stat__num">147</div><div class="stat__label">Atölye Tamamlandı</div></div>
+  <div class="stat"><div class="stat__num">38</div><div class="stat__label">Mentor</div></div>
+  <div class="stat"><div class="stat__num">96%</div><div class="stat__label">Memnuniyet</div></div>
+</div>`,
+    scssCss: `// Saf SCSS — istatistik gridi
+$primary: #4f46e5;
+$gray-500: #64748b;
+
+body { margin: 0; font-family: 'Inter', sans-serif; }
+
+.stats {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 48px 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.stat {
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+
+  &__num {
+    font-size: 36px;
+    font-weight: 800;
+    color: $primary;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  &__label {
+    color: $gray-500;
+    font-size: 13px;
+    margin-top: 8px;
+  }
+}`
+  },
+
+  testimonial: {
+    bootstrap: `<!-- Bootstrap testimonial -->
+<div class="container py-5" style="max-width:600px">
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-5">
+      <div class="text-primary mb-3" style="font-size:48px;line-height:0.5">"</div>
+      <p class="lead mb-4">
+        Atölye sayesinde Bootstrap, Tailwind ve SCSS arasındaki farkları gerçekten kavradım.
+        Aynı tasarımı 3 farklı yaklaşımla yazmak harika bir egzersiz.
+      </p>
+      <div class="d-flex align-items-center gap-3">
+        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width:48px;height:48px">AY</div>
+        <div>
+          <div class="fw-bold">Ayşe Yılmaz</div>
+          <div class="text-secondary small">Frontend Developer · Divizyon</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>`,
+    tailwind: `<!-- Tailwind testimonial -->
+<div class="max-w-2xl mx-auto py-12 px-6">
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+    <div class="text-indigo-600 text-5xl leading-none mb-4">"</div>
+    <p class="text-lg text-slate-700 leading-relaxed mb-6">
+      Atölye sayesinde Bootstrap, Tailwind ve SCSS arasındaki farkları gerçekten kavradım.
+      Aynı tasarımı 3 farklı yaklaşımla yazmak harika bir egzersiz.
+    </p>
+    <div class="flex items-center gap-3">
+      <div class="w-12 h-12 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold">AY</div>
+      <div>
+        <div class="font-bold text-slate-900">Ayşe Yılmaz</div>
+        <div class="text-slate-500 text-sm">Frontend Developer · Divizyon</div>
+      </div>
+    </div>
+  </div>
+</div>`,
+    scssHtml: `<!-- Saf SCSS testimonial -->
+<div class="quote">
+  <div class="quote__mark">"</div>
+  <p class="quote__text">
+    Atölye sayesinde Bootstrap, Tailwind ve SCSS arasındaki farkları gerçekten kavradım.
+    Aynı tasarımı 3 farklı yaklaşımla yazmak harika bir egzersiz.
+  </p>
+  <div class="quote__author">
+    <div class="avatar">AY</div>
+    <div>
+      <div class="quote__name">Ayşe Yılmaz</div>
+      <div class="quote__role">Frontend Developer · Divizyon</div>
+    </div>
+  </div>
+</div>`,
+    scssCss: `// Saf SCSS — testimonial / quote
+$primary: #4f46e5;
+$gray-500: #64748b;
+$gray-700: #334155;
+
+body { margin: 0; font-family: 'Inter', sans-serif; }
+
+.quote {
+  max-width: 600px;
+  margin: 48px auto;
+  padding: 40px;
+  background: #fff;
+  border-radius: 20px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+
+  &__mark {
+    color: $primary;
+    font-size: 56px;
+    line-height: 0.5;
+    margin-bottom: 16px;
+  }
+
+  &__text {
+    font-size: 18px;
+    line-height: 1.65;
+    color: $gray-700;
+    margin: 0 0 24px;
+  }
+
+  &__author {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__name { font-weight: 700; color: #0f172a; }
+  &__role { color: $gray-500; font-size: 13px; }
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: $primary;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+}`
+  },
+
+  login: {
+    bootstrap: `<!-- Bootstrap login sayfası -->
+<div class="min-vh-100 d-flex align-items-center bg-light py-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-5">
+        <div class="card shadow-lg border-0">
+          <div class="card-body p-5">
+            <h3 class="fw-bold mb-1">Tekrar Hoş Geldin</h3>
+            <p class="text-secondary mb-4">Atölye paneline devam etmek için giriş yap</p>
+            <div class="mb-3">
+              <label class="form-label small fw-medium">E-posta</label>
+              <input type="email" class="form-control" placeholder="ornek@divizyon.org">
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-medium">Şifre</label>
+              <input type="password" class="form-control">
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="r">
+                <label class="form-check-label small" for="r">Beni hatırla</label>
+              </div>
+              <a href="#" class="small text-decoration-none">Şifremi unuttum</a>
+            </div>
+            <button class="btn btn-primary w-100 fw-semibold">Giriş Yap</button>
+            <div class="text-center mt-3 small text-secondary">
+              Hesabın yok mu? <a href="#" class="text-decoration-none fw-semibold">Kayıt ol</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>`,
+    tailwind: `<!-- Tailwind login sayfası -->
+<div class="min-h-screen bg-slate-50 flex items-center justify-center py-12 px-4">
+  <div class="w-full max-w-md">
+    <div class="bg-white rounded-2xl shadow-xl p-8">
+      <h3 class="text-2xl font-bold mb-1">Tekrar Hoş Geldin</h3>
+      <p class="text-slate-500 mb-6">Atölye paneline devam etmek için giriş yap</p>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">E-posta</label>
+          <input type="email" placeholder="ornek@divizyon.org" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">Şifre</label>
+          <input type="password" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <label class="flex items-center gap-2"><input type="checkbox" class="rounded"> <span class="text-slate-700">Beni hatırla</span></label>
+          <a href="#" class="text-indigo-600 hover:underline">Şifremi unuttum</a>
+        </div>
+        <button class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-lg font-semibold transition">Giriş Yap</button>
+        <div class="text-center text-sm text-slate-500">
+          Hesabın yok mu? <a href="#" class="text-indigo-600 font-semibold hover:underline">Kayıt ol</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>`,
+    scssHtml: `<!-- Saf SCSS login sayfası -->
+<div class="login-page">
+  <div class="login-card">
+    <h3 class="login-card__title">Tekrar Hoş Geldin</h3>
+    <p class="login-card__sub">Atölye paneline devam etmek için giriş yap</p>
+    <div class="form-row">
+      <label>E-posta</label>
+      <input type="email" placeholder="ornek@divizyon.org">
+    </div>
+    <div class="form-row">
+      <label>Şifre</label>
+      <input type="password">
+    </div>
+    <div class="login-card__meta">
+      <label class="check"><input type="checkbox"> <span>Beni hatırla</span></label>
+      <a href="#">Şifremi unuttum</a>
+    </div>
+    <button class="login-card__submit">Giriş Yap</button>
+    <div class="login-card__foot">
+      Hesabın yok mu? <a href="#">Kayıt ol</a>
+    </div>
+  </div>
+</div>`,
+    scssCss: `// Saf SCSS — login sayfası
+$primary: #4f46e5;
+$border: #cbd5e1;
+$gray-500: #64748b;
+$gray-700: #334155;
+
+body { margin: 0; font-family: 'Inter', sans-serif; }
+
+.login-page {
+  min-height: 100vh;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 440px;
+  background: #fff;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+
+  &__title {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 4px;
+  }
+
+  &__sub {
+    color: $gray-500;
+    margin: 0 0 24px;
+    font-size: 14px;
+  }
+
+  &__meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    margin: 16px 0 20px;
+
+    a { color: $primary; text-decoration: none; &:hover { text-decoration: underline; } }
+  }
+
+  &__submit {
+    width: 100%;
+    background: $primary;
+    color: #fff;
+    border: none;
+    padding: 11px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.15s;
+
+    &:hover { background: darken($primary, 6%); }
+  }
+
+  &__foot {
+    text-align: center;
+    color: $gray-500;
+    font-size: 13px;
+    margin-top: 16px;
+
+    a { color: $primary; font-weight: 600; text-decoration: none; }
+  }
+}
+
+.form-row {
+  margin-bottom: 14px;
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: $gray-700;
+    margin-bottom: 6px;
+  }
+
+  input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid $border;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.15s;
+    box-sizing: border-box;
+
+    &:focus {
+      border-color: $primary;
+      box-shadow: 0 0 0 3px rgba($primary, 0.15);
+    }
+  }
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: $gray-700;
+  cursor: pointer;
+}`
+  }
+};
+
+const baseOpts = { lineNumbers: true, lineWrapping: true, matchBrackets: true, indentUnit: 2, tabSize: 2 };
+const editors = {
+  bootstrap: CodeMirror.fromTextArea(document.getElementById('codeBootstrap'), { ...baseOpts, mode: 'htmlmixed', autoCloseTags: true }),
+  tailwind:  CodeMirror.fromTextArea(document.getElementById('codeTailwind'),  { ...baseOpts, mode: 'htmlmixed', autoCloseTags: true }),
+  scssHtml:  CodeMirror.fromTextArea(document.getElementById('codeScssHtml'),  { ...baseOpts, mode: 'htmlmixed', autoCloseTags: true }),
+  scssCss:   CodeMirror.fromTextArea(document.getElementById('codeScssCss'),   { ...baseOpts, mode: 'css' })
+};
+editors.bootstrap.setValue(DEFAULT_BOOTSTRAP);
+editors.tailwind.setValue(DEFAULT_TAILWIND);
+editors.scssHtml.setValue(DEFAULT_SCSS_HTML);
+editors.scssCss.setValue(DEFAULT_SCSS_CSS);
+
+let compiledCss = '';
+let scssError = null;
+
+function compileScss(callback) {
+  const code = editors.scssCss.getValue();
+  if (typeof Sass === 'undefined') {
+    compiledCss = '';
+    callback();
+    return;
+  }
+  Sass.compile(code, function(result) {
+    if (result.status === 0) {
+      compiledCss = result.text || '';
+      scssError = null;
+    } else {
+      scssError = result.formatted || result.message || 'SCSS hatası';
+    }
+    callback();
+  });
+}
+
+function renderToFrame(fwKey) {
+  const fw = FRAMEWORKS[fwKey];
+  let html = '';
+  let extra = '';
+  if (fwKey === 'bootstrap') html = editors.bootstrap.getValue();
+  else if (fwKey === 'tailwind') html = editors.tailwind.getValue();
+  else if (fwKey === 'scss') {
+    html = editors.scssHtml.getValue();
+    extra = `<style>${compiledCss}</style>`;
+  }
+  const doc = `<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">${fw.head}${extra}<style>html,body{margin:0;font-family:'Inter',system-ui,sans-serif;background:#fff;color:#0f172a}</style></head><body>${html}</body></html>`;
+  document.getElementById('iframe-' + fwKey).srcdoc = doc;
+}
+
+const errEl = document.getElementById('scssError');
+const errText = document.getElementById('scssErrorText');
+const statusDot = document.getElementById('statusDot');
+const statusText = document.getElementById('statusText');
+
+let renderTimer;
+function renderAll() {
+  clearTimeout(renderTimer);
+  renderTimer = setTimeout(() => {
+    compileScss(() => {
+      if (scssError) {
+        errEl.classList.add('show');
+        errText.textContent = scssError;
+        statusDot.classList.add('error');
+        statusText.textContent = 'SCSS hatası';
+      } else {
+        errEl.classList.remove('show');
+        statusDot.classList.remove('error');
+        statusText.textContent = 'Canlı önizleme';
+      }
+      Object.keys(FRAMEWORKS).forEach(renderToFrame);
+    });
+  }, 250);
+}
+Object.values(editors).forEach(ed => ed.on('change', renderAll));
+renderAll();
+
+// File tabs
+document.querySelectorAll('.file-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.file-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.editor-pane').forEach(p => p.classList.remove('active'));
+    const key = tab.dataset.pane;
+    document.getElementById('pane-' + key).classList.add('active');
+    setTimeout(() => {
+      editors[key].refresh();
+      editors[key].focus();
+    }, 0);
+  });
+});
+
+// Framework segmented
+const previewArea = document.getElementById('previewArea');
+document.querySelectorAll('#frameworkSeg button').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('#frameworkSeg button').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    const fw = b.dataset.fw;
+    const frames = previewArea.querySelectorAll('.frame');
+    if (fw === 'all') {
+      previewArea.classList.remove('single');
+      previewArea.classList.add('triple');
+      frames.forEach(f => f.style.display = 'flex');
+    } else {
+      previewArea.classList.remove('triple');
+      previewArea.classList.add('single');
+      frames.forEach(f => f.style.display = f.dataset.fw === fw ? 'flex' : 'none');
+    }
+  });
+});
+
+// Device toggle
+document.querySelectorAll('#deviceSeg button').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('#deviceSeg button').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    previewArea.classList.remove('device-desktop','device-tablet','device-mobile');
+    previewArea.classList.add('device-' + b.dataset.d);
+  });
+});
+
+// Snippets — seviyelere göre gruplanmış
+const snippetsEl = document.getElementById('snippets');
+const LEVELS = [
+  { id: 'l1', label: 'L1 · Atom', items: { button: 'Buton', badge: 'Badge', alert: 'Alert' } },
+  { id: 'l2', label: 'L2 · Bileşen', items: { card: 'Kart', form: 'Form', navbar: 'Navbar', modal: 'Modal' } },
+  { id: 'l3', label: 'L3 · Bölüm', items: { hero: 'Hero', grid: 'Grid', stats: 'Stats', testimonial: 'Quote', pricing: 'Pricing' } },
+  { id: 'l4', label: 'L4 · Sayfa', items: { login: 'Login Sayfası' } }
+];
+
+LEVELS.forEach(level => {
+  const tag = document.createElement('span');
+  tag.className = 'level-tag ' + level.id;
+  tag.textContent = level.label;
+  snippetsEl.appendChild(tag);
+
+  Object.entries(level.items).forEach(([k, label]) => {
+    const c = document.createElement('button');
+    c.className = 'chip ' + level.id;
+    c.textContent = label;
+    c.addEventListener('click', () => {
+      editors.bootstrap.setValue(SAMPLES[k].bootstrap);
+      editors.tailwind.setValue(SAMPLES[k].tailwind);
+      editors.scssHtml.setValue(SAMPLES[k].scssHtml);
+      editors.scssCss.setValue(SAMPLES[k].scssCss);
+      showToast(label + ' şablonu yüklendi');
+    });
+    snippetsEl.appendChild(c);
+  });
+});
+
+// Reset / copy
+document.getElementById('resetBtn').addEventListener('click', () => {
+  editors.bootstrap.setValue(DEFAULT_BOOTSTRAP);
+  editors.tailwind.setValue(DEFAULT_TAILWIND);
+  editors.scssHtml.setValue(DEFAULT_SCSS_HTML);
+  editors.scssCss.setValue(DEFAULT_SCSS_CSS);
+  showToast('Sıfırlandı');
+});
+document.getElementById('copyBtn').addEventListener('click', async () => {
+  const key = document.querySelector('.file-tab.active').dataset.pane;
+  const labels = { bootstrap: 'bootstrap.html', tailwind: 'tailwind.html', scssHtml: 'scss.html', scssCss: 'style.scss' };
+  await navigator.clipboard.writeText(editors[key].getValue());
+  showToast(labels[key] + ' kopyalandı');
+});
+
+const toast = document.getElementById('toast');
+const toastText = document.getElementById('toastText');
+let toastTimer;
+function showToast(msg) {
+  toastText.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 1600);
+}
+
+// Shortcuts
+window.addEventListener('keydown', (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+    e.preventDefault();
+    document.getElementById('copyBtn').click();
+  }
+  const map = { '1': 'bootstrap', '2': 'tailwind', '3': 'scssHtml', '4': 'scssCss' };
+  if ((e.metaKey || e.ctrlKey) && map[e.key]) {
+    e.preventDefault();
+    document.querySelector('.file-tab[data-pane="' + map[e.key] + '"]').click();
+  }
+});
+</script>
+</body>
+</html>
