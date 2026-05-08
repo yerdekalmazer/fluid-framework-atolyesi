@@ -1,53 +1,66 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { ALL_CASES, TOTAL_CASES, SCORING } from "./data/cases.js";
 import { CHAPTERS } from "./data/chapters.js";
 import { Hero } from "./components/Hero.jsx";
 import { FilterBar } from "./components/FilterBar.jsx";
 import { ChapterIntro } from "./components/ChapterIntro.jsx";
 import { CaseCard } from "./components/CaseCard.jsx";
-
-const STORAGE_KEY = "bug-hunt-story-checked-v1";
-
-function loadChecked() {
-  if (typeof window === "undefined") return {};
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
-}
-
-function saveChecked(map) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(map)); } catch {}
-}
+import { AuthBar } from "./components/AuthBar.jsx";
+import { Leaderboard } from "./components/Leaderboard.jsx";
+import { useSession } from "./lib/useSession.js";
+import {
+  loadLocal, saveLocal,
+  syncLocalToRemote, markCaseRemote, unmarkCaseRemote, clearAllRemote,
+} from "./lib/progress.js";
 
 function getScoreLabel(count) {
   return SCORING.find(s => count >= s.min)?.label ?? SCORING[SCORING.length - 1].label;
 }
 
 export default function App() {
+  const { session, profile } = useSession();
+  const userId = session?.user?.id ?? null;
+
   const [checked, setChecked] = useState({});
   const [activeChapter, setActiveChapter] = useState("all");
   const [activePage, setActivePage] = useState("all");
   const [query, setQuery] = useState("");
   const [hideResolved, setHideResolved] = useState(false);
+  const [view, setView] = useState("cases"); // 'cases' | 'leaderboard'
 
-  useEffect(() => { setChecked(loadChecked()); }, []);
+  // İlk yüklemede local'i yükle
+  useEffect(() => { setChecked(loadLocal()); }, []);
+
+  // Login olunca local → remote sync, sonra remote'u state'e koy
+  const lastSyncedUserRef = useRef(null);
+  useEffect(() => {
+    if (!userId || lastSyncedUserRef.current === userId) return;
+    lastSyncedUserRef.current = userId;
+    (async () => {
+      const merged = await syncLocalToRemote(userId);
+      setChecked(merged);
+    })();
+  }, [userId]);
 
   const toggle = (id) => {
     setChecked(prev => {
-      const next = { ...prev, [id]: !prev[id] };
-      if (!next[id]) delete next[id];
-      saveChecked(next);
+      const willBeChecked = !prev[id];
+      const next = { ...prev, [id]: willBeChecked };
+      if (!willBeChecked) delete next[id];
+      saveLocal(next);
+      if (userId) {
+        if (willBeChecked) markCaseRemote(userId, id);
+        else unmarkCaseRemote(userId, id);
+      }
       return next;
     });
   };
 
-  const reset = () => {
+  const reset = async () => {
     if (!confirm("Tüm işaretlemeleri silmek istediğine emin misin?")) return;
     setChecked({});
-    saveChecked({});
+    saveLocal({});
+    if (userId) await clearAllRemote(userId);
   };
 
   const checkedCount = Object.values(checked).filter(Boolean).length;
@@ -118,62 +131,92 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-stone-50">
+      <AuthBar session={session} profile={profile} />
       <Hero checkedCount={checkedCount} total={TOTAL_CASES} scoreLabel={scoreLabel} />
 
       <main className="max-w-6xl mx-auto px-6 py-8">
-        <FilterBar
-          activeChapter={activeChapter}
-          onChapterChange={setActiveChapter}
-          query={query}
-          onQueryChange={setQuery}
-          pageOptions={pageOptions}
-          activePage={activePage}
-          onPageChange={setActivePage}
-          filteredCount={filtered.length}
-          totalCount={TOTAL_CASES}
-          onReset={reset}
-          hideResolved={hideResolved}
-          onToggleHideResolved={() => setHideResolved(h => !h)}
-        />
+        <div className="flex gap-2 mb-6 border-b border-stone-200">
+          <button
+            onClick={() => setView("cases")}
+            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition ${
+              view === "cases"
+                ? "border-stone-900 text-stone-900"
+                : "border-transparent text-stone-500 hover:text-stone-800"
+            }`}
+          >
+            📋 Şikayetler
+          </button>
+          <button
+            onClick={() => setView("leaderboard")}
+            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition ${
+              view === "leaderboard"
+                ? "border-stone-900 text-stone-900"
+                : "border-transparent text-stone-500 hover:text-stone-800"
+            }`}
+          >
+            🏆 Sıralama
+          </button>
+        </div>
 
-        {grouped.length === 0 ? (
-          <div className="bg-white rounded-xl border border-stone-200 p-16 text-center">
-            <div className="text-stone-400 text-lg font-serif italic">
-              Bu filtreye uygun şikayet bulunamadı.
-            </div>
-          </div>
+        {view === "leaderboard" ? (
+          <Leaderboard currentUserId={userId} />
         ) : (
-          <div className="space-y-10">
-            {grouped.map(group => (
-              <section key={group.chapter.id}>
-                {group.chapter.intro ? (
-                  <ChapterIntro chapter={group.chapter} />
-                ) : (
-                  <div className="mb-4 pb-2 border-b-2 border-stone-300">
-                    <div className="text-xs font-mono uppercase tracking-widest text-stone-500">
-                      {group.chapter.number}
-                    </div>
-                    <h2 className="font-serif text-xl font-bold text-stone-900">
-                      {group.chapter.title}
-                      <span className="ml-2 text-stone-400 font-sans text-sm font-normal">
-                        ({group.items.length} şikayet)
-                      </span>
-                    </h2>
-                  </div>
-                )}
-                <div className="space-y-3">
-                  {group.items.map(c => (
-                    <CaseCard
-                      key={c.id}
-                      caseData={c}
-                      isMarked={!!checked[c.id]}
-                      onToggle={() => toggle(c.id)}
-                    />
-                  ))}
+          <>
+            <FilterBar
+              activeChapter={activeChapter}
+              onChapterChange={setActiveChapter}
+              query={query}
+              onQueryChange={setQuery}
+              pageOptions={pageOptions}
+              activePage={activePage}
+              onPageChange={setActivePage}
+              filteredCount={filtered.length}
+              totalCount={TOTAL_CASES}
+              onReset={reset}
+              hideResolved={hideResolved}
+              onToggleHideResolved={() => setHideResolved(h => !h)}
+            />
+
+            {grouped.length === 0 ? (
+              <div className="bg-white rounded-xl border border-stone-200 p-16 text-center">
+                <div className="text-stone-400 text-lg font-serif italic">
+                  Bu filtreye uygun şikayet bulunamadı.
                 </div>
-              </section>
-            ))}
-          </div>
+              </div>
+            ) : (
+              <div className="space-y-10">
+                {grouped.map(group => (
+                  <section key={group.chapter.id}>
+                    {group.chapter.intro ? (
+                      <ChapterIntro chapter={group.chapter} />
+                    ) : (
+                      <div className="mb-4 pb-2 border-b-2 border-stone-300">
+                        <div className="text-xs font-mono uppercase tracking-widest text-stone-500">
+                          {group.chapter.number}
+                        </div>
+                        <h2 className="font-serif text-xl font-bold text-stone-900">
+                          {group.chapter.title}
+                          <span className="ml-2 text-stone-400 font-sans text-sm font-normal">
+                            ({group.items.length} şikayet)
+                          </span>
+                        </h2>
+                      </div>
+                    )}
+                    <div className="space-y-3">
+                      {group.items.map(c => (
+                        <CaseCard
+                          key={c.id}
+                          caseData={c}
+                          isMarked={!!checked[c.id]}
+                          onToggle={() => toggle(c.id)}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                ))}
+              </div>
+            )}
+          </>
         )}
 
         <footer className="mt-16 pt-8 border-t border-stone-200 text-center text-sm text-stone-500">
