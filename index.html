@@ -682,7 +682,8 @@ const FRAMEWORKS = {
 
 /* Her framework için ayrı HTML — atölyede aynı tasarımı 3 farklı yolla yazıyoruz. */
 
-const DEFAULT_BOOTSTRAP = `<!-- Bootstrap 5 — yardımcı sınıflar + bileşenler -->
+const DEFAULT_BOOTSTRAP = `<!-- Class yaz, değerleri Bootstrap halleder -->
+<!-- Bootstrap 5 — yardımcı sınıflar + bileşenler -->
 <section class="container py-5" style="max-width:680px">
 
   <span class="badge bg-primary-subtle text-primary fw-semibold px-3 py-2 rounded-pill">
@@ -705,7 +706,8 @@ const DEFAULT_BOOTSTRAP = `<!-- Bootstrap 5 — yardımcı sınıflar + bileşen
 
 </section>`;
 
-const DEFAULT_TAILWIND = `<!-- Tailwind CSS — utility-first yaklaşımı -->
+const DEFAULT_TAILWIND = `<!-- Aynı sonuç ama her değeri sen seçtin -->
+<!-- Tailwind CSS — utility-first yaklaşımı -->
 <section class="max-w-2xl mx-auto py-12 px-6">
 
   <span class="inline-block bg-indigo-50 text-indigo-700 font-semibold px-3 py-1.5 rounded-full text-xs tracking-wide">
@@ -732,7 +734,8 @@ const DEFAULT_TAILWIND = `<!-- Tailwind CSS — utility-first yaklaşımı -->
 
 </section>`;
 
-const DEFAULT_SCSS_HTML = `<!-- Saf SCSS — anlamsal HTML, sınıflar bileşene özel -->
+const DEFAULT_SCSS_HTML = `<!-- Değişken ve BEM ile tam kontrol sende -->
+<!-- Saf SCSS — anlamsal HTML, sınıflar bileşene özel -->
 <section class="hero">
 
   <span class="hero__badge">ATÖLYE · 2026</span>
@@ -751,7 +754,8 @@ const DEFAULT_SCSS_HTML = `<!-- Saf SCSS — anlamsal HTML, sınıflar bileşene
 
 </section>`;
 
-const DEFAULT_SCSS_CSS = `// Saf SCSS — BEM benzeri anlamsal sınıflar + değişken/mixin
+const DEFAULT_SCSS_CSS = `// Değişken ve BEM ile tam kontrol sende
+// Saf SCSS — BEM benzeri anlamsal sınıflar + değişken/mixin
 
 $primary: #4f46e5;
 $primary-soft: #eef2ff;
@@ -837,7 +841,8 @@ body {
 /* Her şablon: 4 dosya - bootstrap.html, tailwind.html, scss.html, style.scss */
 const SAMPLES = {
   button: {
-    bootstrap: `<!-- Bootstrap butonlar -->
+    bootstrap: `<!-- Tek class yaz, hover ve focus gelir -->
+<!-- Bootstrap butonlar -->
 <div class="container py-5 d-flex flex-wrap gap-2">
   <button class="btn btn-primary">Birincil</button>
   <button class="btn btn-secondary">İkincil</button>
@@ -847,7 +852,8 @@ const SAMPLES = {
   <button class="btn btn-primary btn-sm">Küçük</button>
   <button class="btn btn-primary btn-lg">Büyük</button>
 </div>`,
-    tailwind: `<!-- Tailwind butonlar -->
+    tailwind: `<!-- Her şeyi kendin yazdın, override sorunu yok -->
+<!-- Tailwind butonlar -->
 <div class="max-w-3xl mx-auto py-12 px-6 flex flex-wrap gap-2">
   <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md font-medium transition">Birincil</button>
   <button class="bg-slate-200 hover:bg-slate-300 text-slate-800 px-4 py-2 rounded-md font-medium transition">İkincil</button>
@@ -857,7 +863,8 @@ const SAMPLES = {
   <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 text-sm rounded-md font-medium transition">Küçük</button>
   <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 text-lg rounded-md font-medium transition">Büyük</button>
 </div>`,
-    scssHtml: `<!-- Saf SCSS butonlar -->
+    scssHtml: `<!-- Mixin fonksiyon gibi, döngü class üretir -->
+<!-- Saf SCSS butonlar -->
 <div class="btn-row">
   <button class="btn btn--primary">Birincil</button>
   <button class="btn btn--secondary">İkincil</button>
@@ -867,7 +874,8 @@ const SAMPLES = {
   <button class="btn btn--primary btn--sm">Küçük</button>
   <button class="btn btn--primary btn--lg">Büyük</button>
 </div>`,
-    scssCss: `// Saf SCSS — buton sistemi (variant + size mixin)
+    scssCss: `// Mixin fonksiyon gibi, döngü class üretir
+// Saf SCSS — buton sistemi (variant + size mixin)
 $colors: (
   primary:   (#4f46e5, #fff),
   secondary: (#e2e8f0, #1e293b),
@@ -927,7 +935,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
   },
 
   badge: {
-    bootstrap: `<!-- Bootstrap badge -->
+    bootstrap: `<!-- Hazır renk paketi ama tonu bilemezsin -->
+<!-- Bootstrap badge -->
 <div class="container py-5 d-flex flex-wrap gap-2 align-items-center">
   <span class="badge bg-primary">Yeni</span>
   <span class="badge bg-success">Aktif</span>
@@ -937,7 +946,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
   <span class="badge text-bg-info">Bilgi</span>
   <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Soft</span>
 </div>`,
-    tailwind: `<!-- Tailwind badge -->
+    tailwind: `<!-- Aynı renk ailesinden doğru tonu seç -->
+<!-- Tailwind badge -->
 <div class="max-w-3xl mx-auto py-12 px-6 flex flex-wrap gap-2 items-center">
   <span class="bg-indigo-600 text-white text-xs font-semibold px-2 py-1 rounded">Yeni</span>
   <span class="bg-emerald-600 text-white text-xs font-semibold px-2 py-1 rounded">Aktif</span>
@@ -947,7 +957,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
   <span class="bg-cyan-500 text-white text-xs font-semibold px-2 py-1 rounded">Bilgi</span>
   <span class="bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-semibold px-2 py-1 rounded">Soft</span>
 </div>`,
-    scssHtml: `<!-- Saf SCSS badge -->
+    scssHtml: `<!-- @each döngüsü tüm varyantları otomatik üretir -->
+<!-- Saf SCSS badge -->
 <div class="badge-row">
   <span class="badge badge--primary">Yeni</span>
   <span class="badge badge--success">Aktif</span>
@@ -957,7 +968,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
   <span class="badge badge--info">Bilgi</span>
   <span class="badge badge--soft">Soft</span>
 </div>`,
-    scssCss: `// Saf SCSS — badge sistemi
+    scssCss: `// @each döngüsü tüm varyantları otomatik üretir
+// Saf SCSS — badge sistemi
 $variants: (
   primary:   #4f46e5,
   success:   #16a34a,
@@ -1005,7 +1017,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
   },
 
   alert: {
-    bootstrap: `<!-- Bootstrap alert -->
+    bootstrap: `<!-- Tek class ile arka plan border yazı gelir -->
+<!-- Bootstrap alert -->
 <div class="container py-5" style="max-width:560px">
   <div class="alert alert-success d-flex align-items-center" role="alert">
     <strong class="me-2">✓</strong> Kayıt başarılı! Mailini kontrol et.
@@ -1020,7 +1033,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
     <strong>Bilgi:</strong> Atölye 19:00'da başlayacak.
   </div>
 </div>`,
-    tailwind: `<!-- Tailwind alert -->
+    tailwind: `<!-- 50 arka plan, 200 border, 800 yazı formülü -->
+<!-- Tailwind alert -->
 <div class="max-w-xl mx-auto py-12 px-6 space-y-3">
   <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg flex items-start gap-2">
     <span class="font-bold">✓</span><span><strong>Başarılı:</strong> Kayıt tamamlandı.</span>
@@ -1035,7 +1049,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
     <strong>Bilgi:</strong> Atölye 19:00'da başlayacak.
   </div>
 </div>`,
-    scssHtml: `<!-- Saf SCSS alert -->
+    scssHtml: `<!-- Tek hex renkten rgba ile her ton türer -->
+<!-- Saf SCSS alert -->
 <div class="alerts">
   <div class="alert alert--success">
     <span class="alert__icon">✓</span>
@@ -1051,7 +1066,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
     <strong>Bilgi:</strong> Atölye 19:00'da başlayacak.
   </div>
 </div>`,
-    scssCss: `// Saf SCSS — alert
+    scssCss: `// Tek hex renkten rgba ile her ton türer
+// Saf SCSS — alert
 $alerts: (
   success: #16a34a,
   warning: #f59e0b,
@@ -1098,7 +1114,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; background: #fff; }
     scssCss: DEFAULT_SCSS_CSS
   },
   card: {
-    bootstrap: `<!-- Bootstrap kart -->
+    bootstrap: `<!-- shadow-sm yaz, gölgenin değerini Bootstrap bilir -->
+<!-- Bootstrap kart -->
 <div class="container py-5" style="max-width:480px">
   <div class="card shadow-sm border-0">
     <div class="card-body p-4">
@@ -1110,7 +1127,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; background: #fff; }
     </div>
   </div>
 </div>`,
-    tailwind: `<!-- Tailwind kart -->
+    tailwind: `<!-- rounded-2xl ile tam olarak kaç px bilirsin -->
+<!-- Tailwind kart -->
 <div class="max-w-md mx-auto py-12 px-4">
   <div class="bg-white rounded-2xl shadow-md p-6">
     <h3 class="text-xl font-bold mb-2">Atölye Kartı</h3>
@@ -1122,7 +1140,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; background: #fff; }
     </button>
   </div>
 </div>`,
-    scssHtml: `<!-- Saf SCSS kart -->
+    scssHtml: `<!-- box-shadow değerini sen yazdın, tam kontrol var -->
+<!-- Saf SCSS kart -->
 <div class="page">
   <article class="card">
     <h3 class="card__title">Atölye Kartı</h3>
@@ -1132,7 +1151,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; background: #fff; }
     <button class="btn btn--primary">Aksiyon</button>
   </article>
 </div>`,
-    scssCss: `// Saf SCSS — kart
+    scssCss: `// box-shadow değerini sen yazdın, tam kontrol var
+// Saf SCSS — kart
 $primary: #4f46e5;
 $gray-500: #64748b;
 
@@ -1176,7 +1196,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; background: #f8fafc; }
 }`
   },
   grid: {
-    bootstrap: `<!-- Bootstrap grid -->
+    bootstrap: `<!-- 12 kolonlu sistem, onlarca yıllık web standardı -->
+<!-- Bootstrap grid -->
 <div class="container py-4">
   <div class="row g-3">
     <div class="col-md-4">
@@ -1190,7 +1211,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; background: #f8fafc; }
     </div>
   </div>
 </div>`,
-    tailwind: `<!-- Tailwind grid -->
+    tailwind: `<!-- CSS Grid ile modern ve okunaklı sözdizimi -->
+<!-- Tailwind grid -->
 <div class="max-w-5xl mx-auto py-8 px-4">
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
     <div class="bg-indigo-50 text-indigo-700 font-semibold rounded-xl py-6 text-center">Sütun 1</div>
@@ -1198,13 +1220,15 @@ body { margin: 0; font-family: 'Inter', sans-serif; background: #f8fafc; }
     <div class="bg-pink-50 text-pink-700 font-semibold rounded-xl py-6 text-center">Sütun 3</div>
   </div>
 </div>`,
-    scssHtml: `<!-- Saf SCSS grid -->
+    scssHtml: `<!-- flex: 1 min-width ile breakpointsiz responsive grid -->
+<!-- Saf SCSS grid -->
 <div class="grid">
   <div class="grid__item">Sütun 1</div>
   <div class="grid__item">Sütun 2</div>
   <div class="grid__item">Sütun 3</div>
 </div>`,
-    scssCss: `// Saf SCSS — flex grid + harita iterasyonu
+    scssCss: `// flex: 1 min-width ile breakpointsiz responsive grid
+// Saf SCSS — flex grid + harita iterasyonu
 body { margin: 0; font-family: 'Inter', sans-serif; }
 
 $colors: (
@@ -1239,7 +1263,8 @@ $colors: (
 }`
   },
   form: {
-    bootstrap: `<!-- Bootstrap form -->
+    bootstrap: `<!-- form-control yaz, focus efekti de dahil gelir -->
+<!-- Bootstrap form -->
 <div class="container py-5" style="max-width:460px">
   <h3 class="fw-bold mb-4">Giriş Yap</h3>
   <div class="mb-3">
@@ -1252,7 +1277,8 @@ $colors: (
   </div>
   <button class="btn btn-primary w-100 fw-semibold py-2">Giriş</button>
 </div>`,
-    tailwind: `<!-- Tailwind form -->
+    tailwind: `<!-- focus: class'larını kendin yazdın, tam kontrol -->
+<!-- Tailwind form -->
 <div class="max-w-md mx-auto py-12 px-4">
   <h3 class="text-xl font-bold mb-5">Giriş Yap</h3>
   <div class="mb-4">
@@ -1267,7 +1293,8 @@ $colors: (
     Giriş
   </button>
 </div>`,
-    scssHtml: `<!-- Saf SCSS form -->
+    scssHtml: `<!-- box-sizing olmadan width ve padding birlikte taşar -->
+<!-- Saf SCSS form -->
 <form class="form">
   <h3 class="form__title">Giriş Yap</h3>
   <div class="form__row">
@@ -1280,7 +1307,8 @@ $colors: (
   </div>
   <button class="form__submit">Giriş</button>
 </form>`,
-    scssCss: `// Saf SCSS — form
+    scssCss: `// box-sizing olmadan width ve padding birlikte taşar
+// Saf SCSS — form
 $primary: #4f46e5;
 $border: #cbd5e1;
 $gray-700: #334155;
@@ -1341,7 +1369,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
 }`
   },
   modal: {
-    bootstrap: `<!-- Bootstrap modal (statik render) -->
+    bootstrap: `<!-- data-bs-toggle yaz, JS yazmadan modal açılır -->
+<!-- Bootstrap modal (statik render) -->
 <div style="background:rgba(15,23,42,0.5);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px">
   <div class="modal-dialog modal-dialog-centered" style="max-width:440px;margin:0">
     <div class="modal-content shadow-lg">
@@ -1359,7 +1388,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
     </div>
   </div>
 </div>`,
-    tailwind: `<!-- Tailwind modal (statik render) -->
+    tailwind: `<!-- Overlay ve görsel var ama JS kendin yazarsın -->
+<!-- Tailwind modal (statik render) -->
 <div class="bg-slate-900/50 min-h-screen flex items-center justify-center p-5">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
     <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
@@ -1375,7 +1405,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
     </div>
   </div>
 </div>`,
-    scssHtml: `<!-- Saf SCSS modal -->
+    scssHtml: `<!-- position relative ve absolute ilişkisini kendin kurarsın -->
+<!-- Saf SCSS modal -->
 <div class="overlay">
   <div class="modal">
     <header class="modal__head">
@@ -1391,7 +1422,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
     </footer>
   </div>
 </div>`,
-    scssCss: `// Saf SCSS — modal
+    scssCss: `// position relative ve absolute ilişkisini kendin kurarsın
+// Saf SCSS — modal
 $primary: #4f46e5;
 $gray-100: #f8fafc;
 $gray-200: #e2e8f0;
@@ -1482,7 +1514,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
   },
 
   navbar: {
-    bootstrap: `<!-- Bootstrap navbar -->
+    bootstrap: `<!-- navbar-expand-lg yaz, hamburger menü bedava gelir -->
+<!-- Bootstrap navbar -->
 <nav class="navbar navbar-expand-lg bg-white shadow-sm border-bottom">
   <div class="container-fluid px-4">
     <a class="navbar-brand fw-bold" href="#">⬢ Divizyon</a>
@@ -1494,7 +1527,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
     <button class="btn btn-primary px-4">Katıl</button>
   </div>
 </nav>`,
-    tailwind: `<!-- Tailwind navbar -->
+    tailwind: `<!-- Görsel kontrol sende ama JS kendin yazarsın -->
+<!-- Tailwind navbar -->
 <nav class="bg-white shadow-sm border-b border-slate-100 px-6 py-3.5 flex items-center justify-between">
   <a href="#" class="text-lg font-extrabold text-slate-900">⬢ Divizyon</a>
   <div class="flex gap-6">
@@ -1506,7 +1540,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
     Katıl
   </button>
 </nav>`,
-    scssHtml: `<!-- Saf SCSS navbar -->
+    scssHtml: `<!-- BEM ile her class sadece navbar'a ait -->
+<!-- Saf SCSS navbar -->
 <nav class="navbar">
   <a href="#" class="navbar__brand">⬢ Divizyon</a>
   <ul class="navbar__links">
@@ -1516,7 +1551,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
   </ul>
   <button class="navbar__cta">Katıl</button>
 </nav>`,
-    scssCss: `// Saf SCSS — navbar
+    scssCss: `// BEM ile her class sadece navbar'a ait
+// Saf SCSS — navbar
 $primary: #4f46e5;
 $text: #334155;
 
@@ -1571,7 +1607,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
   },
 
   pricing: {
-    bootstrap: `<!-- Bootstrap pricing -->
+    bootstrap: `<!-- col-md-4 yaz, 12 kolonlu grid halleder -->
+<!-- Bootstrap pricing -->
 <div class="container py-5">
   <div class="row g-4 justify-content-center">
     <div class="col-md-4">
@@ -1622,7 +1659,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
     </div>
   </div>
 </div>`,
-    tailwind: `<!-- Tailwind pricing -->
+    tailwind: `<!-- md:grid-cols-3 ile breakpoint açıkça görünür -->
+<!-- Tailwind pricing -->
 <div class="max-w-6xl mx-auto py-12 px-6">
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
@@ -1665,7 +1703,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
 
   </div>
 </div>`,
-    scssHtml: `<!-- Saf SCSS pricing -->
+    scssHtml: `<!-- auto-fit ile breakpoint yazmadan responsive olur -->
+<!-- Saf SCSS pricing -->
 <div class="pricing">
   <div class="plan">
     <h5 class="plan__name">Başlangıç</h5>
@@ -1702,7 +1741,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
     <button class="btn btn--outline">İletişim</button>
   </div>
 </div>`,
-    scssCss: `// Saf SCSS — pricing kartları
+    scssCss: `// auto-fit ile breakpoint yazmadan responsive olur
+// Saf SCSS — pricing kartları
 $primary: #4f46e5;
 $border: #e2e8f0;
 $gray-500: #64748b;
@@ -1790,7 +1830,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; background: #f8fafc; }
   },
 
   stats: {
-    bootstrap: `<!-- Bootstrap stats -->
+    bootstrap: `<!-- col-6 col-md-3 ile iki breakpoint tek satırda -->
+<!-- Bootstrap stats -->
 <div class="container py-5">
   <div class="row g-4 text-center">
     <div class="col-6 col-md-3">
@@ -1819,7 +1860,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; background: #f8fafc; }
     </div>
   </div>
 </div>`,
-    tailwind: `<!-- Tailwind stats -->
+    tailwind: `<!-- grid-cols-2 md:grid-cols-4 daha okunaklı aynı sonuç -->
+<!-- Tailwind stats -->
 <div class="max-w-5xl mx-auto py-12 px-6">
   <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
     <div class="bg-slate-50 rounded-2xl p-6 text-center">
@@ -1840,14 +1882,16 @@ body { margin: 0; font-family: 'Inter', sans-serif; background: #f8fafc; }
     </div>
   </div>
 </div>`,
-    scssHtml: `<!-- Saf SCSS stats -->
+    scssHtml: `<!-- minmax(180px, 1fr) ile breakpoint yazmadan otomatik grid -->
+<!-- Saf SCSS stats -->
 <div class="stats">
   <div class="stat"><div class="stat__num">2.4K</div><div class="stat__label">Aktif Üye</div></div>
   <div class="stat"><div class="stat__num">147</div><div class="stat__label">Atölye Tamamlandı</div></div>
   <div class="stat"><div class="stat__num">38</div><div class="stat__label">Mentor</div></div>
   <div class="stat"><div class="stat__num">96%</div><div class="stat__label">Memnuniyet</div></div>
 </div>`,
-    scssCss: `// Saf SCSS — istatistik gridi
+    scssCss: `// minmax(180px, 1fr) ile breakpoint yazmadan otomatik grid
+// Saf SCSS — istatistik gridi
 $primary: #4f46e5;
 $gray-500: #64748b;
 
@@ -1885,7 +1929,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
   },
 
   testimonial: {
-    bootstrap: `<!-- Bootstrap testimonial -->
+    bootstrap: `<!-- Avatar boyutu için inline style yazmak zorunda kaldın -->
+<!-- Bootstrap testimonial -->
 <div class="container py-5" style="max-width:600px">
   <div class="card border-0 shadow-sm">
     <div class="card-body p-5">
@@ -1904,7 +1949,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
     </div>
   </div>
 </div>`,
-    tailwind: `<!-- Tailwind testimonial -->
+    tailwind: `<!-- w-12 h-12 ile inline style yazmak gerekmedi -->
+<!-- Tailwind testimonial -->
 <div class="max-w-2xl mx-auto py-12 px-6">
   <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
     <div class="text-indigo-600 text-5xl leading-none mb-4">"</div>
@@ -1921,7 +1967,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
     </div>
   </div>
 </div>`,
-    scssHtml: `<!-- Saf SCSS testimonial -->
+    scssHtml: `<!-- BEM ile her class sadece bu bileşene ait -->
+<!-- Saf SCSS testimonial -->
 <div class="quote">
   <div class="quote__mark">"</div>
   <p class="quote__text">
@@ -1936,7 +1983,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
     </div>
   </div>
 </div>`,
-    scssCss: `// Saf SCSS — testimonial / quote
+    scssCss: `// BEM ile her class sadece bu bileşene ait
+// Saf SCSS — testimonial / quote
 $primary: #4f46e5;
 $gray-500: #64748b;
 $gray-700: #334155;
@@ -1991,7 +2039,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
   },
 
   login: {
-    bootstrap: `<!-- Bootstrap login sayfası -->
+    bootstrap: `<!-- Az class ile hızlı sonuç ama özelleştirme zor -->
+<!-- Bootstrap login sayfası -->
 <div class="min-vh-100 d-flex align-items-center bg-light py-5">
   <div class="container">
     <div class="row justify-content-center">
@@ -2025,7 +2074,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
     </div>
   </div>
 </div>`,
-    tailwind: `<!-- Tailwind login sayfası -->
+    tailwind: `<!-- Her input için aynı class'ları tekrar yazmak gerekti -->
+<!-- Tailwind login sayfası -->
 <div class="min-h-screen bg-slate-50 flex items-center justify-center py-12 px-4">
   <div class="w-full max-w-md">
     <div class="bg-white rounded-2xl shadow-xl p-8">
@@ -2052,7 +2102,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
     </div>
   </div>
 </div>`,
-    scssHtml: `<!-- Saf SCSS login sayfası -->
+    scssHtml: `<!-- En fazla kod ama her satırın ne yaptığını bilirsin -->
+<!-- Saf SCSS login sayfası -->
 <div class="login-page">
   <div class="login-card">
     <h3 class="login-card__title">Tekrar Hoş Geldin</h3>
@@ -2075,7 +2126,8 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
     </div>
   </div>
 </div>`,
-    scssCss: `// Saf SCSS — login sayfası
+    scssCss: `// En fazla kod ama her satırın ne yaptığını bilirsin
+// Saf SCSS — login sayfası
 $primary: #4f46e5;
 $border: #cbd5e1;
 $gray-500: #64748b;
