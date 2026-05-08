@@ -3149,11 +3149,13 @@ function setPreviewFw(fw) {
 }
 
 // File tabs — kod sekmesi değişince önizleme de eşleşsin
+// Karşılaştırma (all) modundayken önizleme korunur, sadece kod sekmesi değişir.
 document.querySelectorAll('.file-tab').forEach(tab => {
   tab.addEventListener('click', () => {
     const key = tab.dataset.pane;
     setCodePane(key);
-    setPreviewFw(PANE_TO_FW[key]);
+    const currentFw = document.querySelector('#frameworkSeg button.active')?.dataset.fw;
+    if (currentFw !== 'all') setPreviewFw(PANE_TO_FW[key]);
   });
 });
 
