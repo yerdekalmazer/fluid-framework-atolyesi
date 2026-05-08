@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Divizyon — Atölye Topluluğu</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'Inter', system-ui, sans-serif; }
+</style>
+</head>
+<body class="bg-slate-50">
+<div id="root"></div>
+
+<script type="text/babel" data-presets="env,react">
+const { useState, useEffect, useRef } = React;
+
+const ICON_PATHS = {
+  hexagon:        <polygon points="12,2 22,8 22,16 12,22 2,16 2,8" />,
+  home:           <><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></>,
+  newspaper:      <><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></>,
+  bell:           <><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></>,
+  mail:           <><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,6 12,13 2,6"/></>,
+  "message-circle": <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>,
+  palette:        <><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2"/></>,
+  book:           <><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></>,
+  "book-open":    <><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></>,
+  plus:           <><path d="M5 12h14"/><path d="M12 5v14"/></>,
+  minus:          <path d="M5 12h14"/>,
+  calendar:       <><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></>,
+  "map-pin":      <><path d="M20 10c0 7-8 13-8 13s-8-6-8-13a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></>,
+  users:          <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>,
+  user:           <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>,
+  pencil:         <><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></>,
+  "file-text":    <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></>,
+  "id-card":      <><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M16 10h2"/><path d="M16 14h2"/><circle cx="9" cy="11" r="2"/><path d="M5 17a4 4 0 0 1 8 0"/></>,
+  heart:          <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>,
+  "message-square": <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>,
+  settings:       <><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></>,
+  lock:           <><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></>,
+  "credit-card":  <><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></>,
+  building:       <><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></>,
+  rocket:         <><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></>,
+  phone:          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>,
+  "help-circle":  <><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></>,
+  lightbulb:      <><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M15.09 14a4 4 0 1 0-6.18 0"/></>,
+  search:         <><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></>,
+  check:          <polyline points="20 6 9 17 4 12"/>,
+  x:              <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>,
+  "chevron-left": <polyline points="15 18 9 12 15 6"/>,
+  "chevron-right": <polyline points="9 18 15 12 9 6"/>,
+  "more-horizontal": <><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="19" cy="12" r="1" fill="currentColor"/><circle cx="5" cy="12" r="1" fill="currentColor"/></>,
+  star:           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>,
+  "star-fill":    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="currentColor"/>,
+  "arrow-up-right": <><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></>,
+  "trending-up":  <><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></>,
+  share:          <><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></>,
+  twitter:        <path d="M18 2 6.05 22h2.83l4.94-8.27L18 22h4l-7.43-12.05L21 2h-2.71l-4.36 7.27L9 2H5l5.4 8.95Z"/>,
+  linkedin:       <><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></>,
+  download:       <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></>,
+  upload:         <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></>,
+  send:           <><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></>,
+  arrow:          <><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></>,
+  "arrow-left":   <><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></>,
+  trash:          <><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></>,
+  bookmark:       <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>,
+  menu:           <><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></>,
+};
+
+function Icon({ name, className = "w-4 h-4", filled = false }) {
+  const path = ICON_PATHS[name];
+  if (!path) return null;
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      viewBox="0 0 24 24"
+      fill={filled ? "currentColor" : "none"}
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {path}
+    </svg>
+  );
+}
+
+const NAV = [
+  { name: "Genel", items: [
+    { id: "home", icon: "home", label: "Ana Sayfa" },
+    { id: "feed", icon: "newspaper", label: "Akış" },
+    { id: "notifications", icon: "bell", label: "Bildirimler" },
+    { id: "messages", icon: "mail", label: "Mesajlar" },
+    { id: "conversation", icon: "message-circle", label: "Konuşma" },
+  ]},
+  { name: "Atölyeler", items: [
+    { id: "workshops", icon: "palette", label: "Atölyeler" },
+    { id: "workshop-detail", icon: "book", label: "Atölye Detay" },
+    { id: "workshop-create", icon: "plus", label: "Atölye Oluştur" },
+    { id: "calendar", icon: "calendar", label: "Takvim" },
+    { id: "event-detail", icon: "map-pin", label: "Etkinlik" },
+  ]},
+  { name: "Topluluk", items: [
+    { id: "mentors", icon: "users", label: "Mentorlar" },
+    { id: "mentor-detail", icon: "user", label: "Mentor Profil" },
+    { id: "mentor-apply", icon: "pencil", label: "Mentor Başvuru" },
+    { id: "resources", icon: "book-open", label: "Kaynaklar" },
+    { id: "resource-detail", icon: "file-text", label: "Kaynak Detay" },
+  ]},
+  { name: "Profil", items: [
+    { id: "profile", icon: "id-card", label: "Profilim" },
+    { id: "profile-edit", icon: "pencil", label: "Profili Düzenle" },
+    { id: "likes", icon: "heart", label: "Beğeniler" },
+    { id: "comments-mine", icon: "message-square", label: "Yorumlarım" },
+  ]},
+  { name: "Ayarlar", items: [
+    { id: "settings-account", icon: "settings", label: "Hesap" },
+    { id: "settings-notifications", icon: "bell", label: "Bildirimler" },
+    { id: "settings-privacy", icon: "lock", label: "Gizlilik" },
+    { id: "settings-billing", icon: "credit-card", label: "Faturalama" },
+  ]},
+  { name: "Şirket", items: [
+    { id: "about", icon: "building", label: "Hakkımızda" },
+    { id: "careers", icon: "rocket", label: "Kariyer" },
+    { id: "contact", icon: "phone", label: "İletişim" },
+    { id: "blog", icon: "newspaper", label: "Blog" },
+    { id: "blog-post", icon: "file-text", label: "Blog Yazısı" },
+    { id: "help", icon: "help-circle", label: "Yardım" },
+    { id: "faq", icon: "lightbulb", label: "SSS" },
+  ]},
+];
+
+const SAMPLE_USERS = [
+  { name: "Eda Kaplan", initials: "EK", color: "bg-emerald-500", role: "Atölye Lideri" },
+  { name: "Murat Tunç", initials: "MT", color: "bg-amber-500", role: "Mentor" },
+  { name: "Sema Bilge", initials: "SB", color: "bg-rose-500", role: "Pixel-Perfect Avcı" },
+  { name: "Can Köse", initials: "CK", color: "bg-cyan-500", role: "Frontend Dev" },
+  { name: "Deniz K.", initials: "DK", color: "bg-indigo-500", role: "Designer" },
+  { name: "Hakan Y.", initials: "HY", color: "bg-violet-500", role: "Mentor" },
+  { name: "Aylin O.", initials: "AO", color: "bg-pink-500", role: "Frontend Dev" },
+  { name: "Berk Ş.", initials: "BŞ", color: "bg-teal-500", role: "Backend Dev" },
+];
+
+const LONG_WORD = "responsivebreakpointlerinincsspecificityileçatışmasıveatölyedebugüntartıştığımızgibibirkutubulmakkitamarttıkalemiraladın";
+const LONG_URL = "https://atolye.divizyon.org/dokumanlar/css-specificity-cheatsheet-2026-pixel-perfect-fluid-framework-edition-extended-version-with-all-bug-fixes";
+
+function Sidebar({ current, onChange, isOpen }) {
+  return (
+    <aside className={`
+      w-60 bg-white border-r border-slate-200 h-screen overflow-y-auto py-4 px-3 shrink-0
+      lg:sticky lg:top-0 lg:translate-x-0
+      fixed top-0 left-0 z-50 transition-transform duration-300
+      ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+    `}>
+      <div className="flex items-center gap-2 px-3 mb-6">
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-fuchsia-600 flex items-center justify-center text-white">
+          <Icon name="hexagon" className="w-4 h-4" filled />
+        </div>
+        <div className="font-extrabold text-slate-900">Divizyon</div>
+      </div>
+      {NAV.map(section => (
+        <div key={section.name} className="mb-4">
+          <div className="px-3 text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">{section.name}</div>
+          {section.items.map(item => (
+            <a
+              key={item.id}
+              href="#"
+              onClick={(e) => { e.preventDefault(); onChange(item.id); }}
+              className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-sm text-slate-600 hover:bg-slate-100`}
+            >
+              <Icon name={item.icon} className="w-4 h-4" />
+              <span>{item.label}</span>
+            </a>
+          ))}
+        </div>
+      ))}
+    </aside>
+  );
+}
+
+function TopBar({ username, onUsernameChange, search, onSearchChange, onOpenNotif, openNotif, onMenuClick }) {
+  const [editing, setEditing] = useState(false);
+  return (
+    <header className="sticky top-0 bg-white border-b border-slate-200 px-6 py-3.5">
+      <div className="flex">
+        <button onClick={onMenuClick} className="lg:hidden mr-3 w-9 h-9 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-700">
+          <Icon name="menu" className="w-5 h-5" />
+        </button>
+        <div className="flex-1 max-w-md">
+          <input
+            type="text"
+            value={search}
+            onChange={e => onSearchChange(e.target.value)}
+            placeholder="Atölye, mentor veya kaynak ara..."
+            className="w-full bg-slate-100 rounded-lg px-3 py-1.5 text-sm focus:outline-none"
+          />
+        </div>
+        <div className="ml-auto flex gap-3">
+          <button onClick={onOpenNotif} className="relative w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-700">
+            <Icon name="bell" className="w-4 h-4" />
+            <span className="absolute top-0 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+          </button>
+          <div className="flex gap-2">
+            <div className="w-12 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-sm">
+              {username.split(" ").map(s => s[0]).join("").slice(0, 2).toUpperCase()}
+            </div>
+            {editing ? (
+              <input autoFocus value={username} onChange={e => onUsernameChange(e.target.value)} onBlur={() => setEditing(false)}
+                className="self-center text-sm font-medium bg-slate-100 rounded px-2 py-1 focus:outline-none" />
+            ) : (
+              <span onClick={() => setEditing(true)} className="self-center text-sm font-medium text-slate-700 cursor-pointer hover:text-indigo-600">
+                {username}
+              </span>
+            )}
+          </div>
+        </div>
+        {openNotif && (
+          <div className="absolute right-6 top-14 bg-white shadow-lg rounded-xl border border-slate-200 w-72 py-2 z-10">
+            <div className="px-4 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">Bildirimler</div>
+            <div className="px-4 py-2 hover:bg-slate-50 text-sm">Eda K. yorumunuza yanıt verdi</div>
+            <div className="px-4 py-2 hover:bg-slate-50 text-sm">Murat T. atölyeyi onayladı</div>
+            <div className="px-4 py-2 hover:bg-slate-50 text-sm">Yeni mentor başvurusu</div>
+          </div>
+        )}
+      </div>
+    </header>
+  );
+}
+
+function Avatar({ user, size = "md" }) {
+  const sizes = { sm: "w-8 h-7", md: "w-12 h-10", lg: "w-16 h-14" };
+  return (
+    <div className={`${sizes[size]} rounded-full ${user.color} text-white flex items-center justify-center font-bold text-sm shrink-0`}>
+      {user.initials}
+    </div>
+  );
+}
+
+function PageHeader({ title, subtitle, action }) {
+  return (
+    <div className="flex items-start mb-6">
+      <div>
+        <h1 className="text-2xl font-extrabold text-slate-900">{title}</h1>
+        {subtitle && <p className="text-sm text-slate-300 mt-1">{subtitle}</p>}
+      </div>
+      {action && <div className="ml-auto">{action}</div>}
+    </div>
+  );
+}
+
+// ===== PAGES =====
+
+function HomePage({ ctx }) {
+  console.log("HomePage rendering, user:", ctx.username);
+  return (
+    <div>
+      <section className="bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 text-white py-12 px-8 rounded-2xl mb-6 overflow-hidden relative">
+        <img src="/images/hero-illustration.svg" className="absolute right-4 top-4 w-32 opacity-50" />
+        <div className="w-[800px]">
+          <span className="inline-block bg-white/20 px-3 py-1 rounded-full text-xs font-semibold mb-3">Hoş geldin</span>
+          <h1 className="text-3xl md:text-4xl font-extrabold mb-2 tracking-tight">Selam {ctx.username.split(" ")[0]}, bugün ne öğreneceksin?</h1>
+          <p className="text-gray-300 mb-6 max-w-xl">Bu hafta 8 yeni atölye, 12 mentor masası ve 24 kaynak yayında.</p>
+          <button className="bg-white text-indigo-700 hover:bg-indigo-50 h-8 px-5 py-3 rounded-lg font-semibold">
+            Atölye Keşfet
+          </button>
+        </div>
+      </section>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {[
+          { l: "Toplam Atölye", v: "147", t: "8 bu hafta", trend: true, p: "p-5" },
+          { l: "Aktif Üye", v: "2.4K", t: "12% bu ay", trend: true, p: "p-3" },
+          { l: "Mentor", v: "38", t: "aktif", trend: false, p: "p-5" },
+          { l: "Memnuniyet", v: "96%", t: "4 puan", trend: true, p: "p-5" },
+        ].map((s) => (
+          <div className={`bg-white rounded-2xl ${s.p} border border-slate-100`}>
+            <div className="text-xs uppercase tracking-wide text-slate-400 font-semibold">{s.l}</div>
+            <div className="text-3xl font-extrabold text-slate-900 mt-2">{s.v}</div>
+            <div className="text-xs text-emerald-600 mt-1 flex items-center gap-1">
+              {s.trend && <Icon name="trending-up" className="w-3 h-3" />} {s.t}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div className="lg:col-span-2 bg-white rounded-2xl p-5 border border-slate-100">
+          <h3 className="font-bold text-lg mb-4 text-slate-900">Son Hareketler</h3>
+          <div className="space-y-3">
+            {SAMPLE_USERS.slice(0, 4).map((u, i) => (
+              <div key={i} className={`flex gap-3 ${i === 1 ? 'p-3' : 'p-4'} rounded-lg hover:bg-slate-50`}>
+                <Avatar user={u} />
+                <div className="flex-1">
+                  <div className="text-sm"><strong>{u.name}</strong> yeni bir atölye paylaştı</div>
+                  <div className="text-xs text-slate-500 mt-0.5">{i + 1} saat önce</div>
+                </div>
+                <button className="bg-indigo-600 text-white h-8 px-3 py-3 rounded text-xs font-semibold">Aç</button>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl p-5 border border-slate-100">
+          <h3 className="font-bold text-lg mb-3 text-slate-900">Hızlı Aksiyonlar</h3>
+          <div className="space-y-2 flex flex-col gap-1">
+            <button onClick={() => ctx.navigate("workshop-create")} className="w-full text-left bg-slate-50 hover:bg-white text-slate-900 px-3 py-2 rounded-lg text-sm">+ Atölye Oluştur</button>
+            <button onClick={() => ctx.navigate("messages")} className="w-full text-left bg-slate-50 hover:bg-white text-slate-900 px-3 py-2 rounded-lg text-sm">Mesaj Gönder</button>
+            <button onClick={() => ctx.navigate("calendar")} className="w-full text-left bg-slate-50 hover:bg-white text-slate-900 px-3 py-2 rounded-lg text-sm">Takvimi Aç</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FeedPage({ ctx }) {
+  const [tab, setTab] = useState(0);
+  const [openDd, setOpenDd] = useState(null);
+  const [openComments, setOpenComments] = useState(null);
+  const [draft, setDraft] = useState("");
+
+  const titles = ["SCSS specificity", "Tailwind v4 yenilikleri", "Bootstrap dark mode", "Pixel-perfect renderer"];
+  const tabs = ["Tümü", "Atölyeler", "Mentorlar", "Kaynaklar"];
+
+  const submitComment = (postId) => {
+    if (!draft.trim()) return;
+    ctx.addComment(postId, draft);
+    setDraft("");
+    ctx.addToast("Yorum eklendi");
+  };
+
+  return (
+    <div>
+      <PageHeader title="Akış" subtitle="Topluluktaki son paylaşımlar" />
+      <div className="flex gap-1 mb-4 border-b border-slate-200">
+        {tabs.map((t, i) => (
+          <button key={i} onClick={() => setTab(i)} className="px-4 py-2 text-sm text-slate-600">{t}</button>
+        ))}
+      </div>
+      <div className="space-y-4">
+        {SAMPLE_USERS.slice(0, 4).map((u, i) => {
+          const baseLikes = [24, 41, 18, 32][i];
+          const likeBoost = ctx.postLikes[i] || 0;
+          const commentList = ctx.postComments[i] || [];
+          const totalComments = 12 + commentList.length;
+          return (
+            <article key={i} className={`bg-white rounded-2xl ${i === 1 ? 'p-3' : 'p-5'} border border-slate-100 overflow-hidden relative`}>
+              <div className="flex gap-3 mb-3 group">
+                <Avatar user={u} />
+                <div className="flex-1">
+                  <div className="font-semibold text-slate-900">{u.name}</div>
+                  <div className="text-xs text-slate-400">{u.role} · {i + 1} saat önce</div>
+                </div>
+                <div className="absolute top-0 left-3 bg-slate-900 text-white text-xs px-3 py-1 rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition whitespace-nowrap z-20">
+                  {u.name} — Doğrulanmış
+                </div>
+                <div className="relative">
+                  <button onClick={() => setOpenDd(openDd === i ? null : i)} className="text-slate-400 hover:text-slate-700 px-2 leading-none flex items-center"><Icon name="more-horizontal" className="w-4 h-4" /></button>
+                  {openDd === i && (
+                    <div className="absolute right-0 top-8 bg-white shadow-lg rounded-lg border border-slate-200 py-1 w-32 z-10">
+                      <button onClick={() => { ctx.openModal("edit"); setOpenDd(null); }} className="block w-full text-left px-3 py-2 text-sm hover:bg-slate-50">Düzenle</button>
+                      <button onClick={() => { ctx.addToast("Kaydedildi"); setOpenDd(null); }} className="block w-full text-left px-3 py-2 text-sm hover:bg-slate-50">Kaydet</button>
+                      <button onClick={() => { ctx.addToast("Bağlantı kopyalandı"); setOpenDd(null); }} className="block w-full text-left px-3 py-2 text-sm hover:bg-slate-50">Paylaş</button>
+                      <button onClick={() => { ctx.openModal("delete"); setOpenDd(null); }} className="block w-full text-left px-3 py-2 text-sm hover:bg-slate-50 text-red-600">Sil</button>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">{titles[i]}</h3>
+              <p className="text-slate-600 leading-relaxed">Bu konuyu atölyede uzun uzun tartıştık. Sizin de görüşlerinizi merak ediyorum.</p>
+
+              <div className="flex gap-4 pt-3 mt-3 border-t border-slate-100">
+                <button onClick={() => ctx.toggleLike(i)} className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-rose-600">
+                  <Icon name="heart" className="w-4 h-4" filled={ctx.likedPosts[i]} />
+                  <span>{baseLikes + likeBoost}</span>
+                </button>
+                <button onClick={() => setOpenComments(openComments === i ? null : i)} className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-indigo-600">
+                  <Icon name="message-circle" className="w-4 h-4" /> {totalComments}
+                </button>
+                <button onClick={() => ctx.addToast("Bağlantı kopyalandı")} className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-indigo-600">
+                  <Icon name="share" className="w-4 h-4" /> Paylaş
+                </button>
+              </div>
+
+              {openComments === i && (
+                <div className="mt-4 pt-4 border-t border-slate-100">
+                  <div className="space-y-2 mb-3">
+                    {commentList.map(c => (
+                      <div key={c.id} className="flex gap-2">
+                        <div className="w-12 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
+                          {c.author.split(" ").map(s => s[0]).join("").slice(0, 2).toUpperCase()}
+                        </div>
+                        <div className="flex-1 bg-slate-50 rounded-lg px-3 py-2">
+                          <div className="text-xs"><strong>{c.author}</strong> · <span className="text-slate-400">{c.time}</span></div>
+                          <div className="text-sm text-slate-700">{c.text}</div>
+                        </div>
+                      </div>
+                    ))}
+                    {commentList.length === 0 && (
+                      <div className="text-xs text-slate-400 italic">Henüz yorum yok — ilk yorumu sen yap.</div>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      value={openComments === i ? draft : ""}
+                      onChange={e => setDraft(e.target.value)}
+                      onKeyDown={e => { if (e.key === "Enter") submitComment(i); }}
+                      placeholder="Yorum yaz..."
+                      className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none"
+                    />
+                    <button onClick={() => submitComment(i)} className="bg-indigo-600 text-white h-8 px-4 py-3 rounded-lg font-semibold text-sm">Gönder</button>
+                  </div>
+                </div>
+              )}
+            </article>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function NotificationsPage({ ctx }) {
+  const items = [
+    { id: "n1", who: "Eda K.", what: "yorumunuza yanıt verdi", time: "5 dk", unread: true },
+    { id: "n2", who: "Murat T.", what: "atölye davetinizi kabul etti", time: "1 saat", unread: true },
+    { id: "n3", who: "Sema B.", what: "size mesaj gönderdi", time: "3 saat", unread: false },
+    { id: "n4", who: "Can K.", what: "paylaşımınızı beğendi", time: "5 saat", unread: false },
+    { id: "n5", who: "Deniz K.", what: "atölye değerlendirmesi yaptı", time: "1 gün", unread: false },
+    { id: "n6", who: "Hakan Y.", what: "sizi mentor olarak ekledi", time: "2 gün", unread: false },
+  ];
+  const markAll = () => {
+    const map = {};
+    items.forEach(it => map[it.id] = true);
+    ctx.setReadNotifs(map);
+    ctx.addToast("Tüm bildirimler okundu");
+  };
+  return (
+    <div>
+      <PageHeader title="Bildirimler" subtitle="Son hareketler" action={<button onClick={markAll} className="text-sm text-slate-300 hover:text-white">Tümünü okundu işaretle</button>} />
+      <div className="bg-white rounded-2xl border border-slate-100 divide-y divide-slate-100 overflow-hidden">
+        {items.map((n, i) => {
+          const isUnread = n.unread && !ctx.readNotifs[n.id];
+          return (
+            <div key={i} onClick={() => ctx.setReadNotifs(r => ({...r, [n.id]: true}))} className={`flex gap-3 ${i === 2 ? 'p-2' : 'p-4'} ${isUnread ? 'bg-indigo-50/30' : ''} cursor-pointer hover:bg-slate-50`}>
+              <Avatar user={SAMPLE_USERS[i % SAMPLE_USERS.length]} />
+              <div className="flex-1">
+                <div className="text-sm"><strong>{n.who}</strong> {n.what}</div>
+                <div className="text-xs text-slate-300 mt-0.5">{n.time} önce</div>
+              </div>
+              {isUnread && <span className="w-2 h-3 bg-indigo-500 rounded-full self-center"></span>}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function MessagesPage({ ctx }) {
+  return (
+    <div>
+      <PageHeader title="Mesajlar" />
+      <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+        <div className="p-4 border-b border-slate-100">
+          <input type="text" placeholder="Konuşma ara..." className="w-full bg-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none" />
+        </div>
+        <div className="divide-y divide-slate-100">
+          {SAMPLE_USERS.slice(0, 6).map((u, i) => (
+            <div key={i} onClick={() => ctx.navigate("conversation")} className={`flex gap-3 ${i === 2 ? 'p-3' : 'p-4'} hover:bg-slate-50 cursor-pointer overflow-hidden`}>
+              <Avatar user={u} />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <strong className="text-slate-900">{u.name}</strong>
+                  <span className="text-xs text-slate-400">{i + 1}sa</span>
+                </div>
+                <p className="text-sm text-slate-600">{i === 0 ? LONG_WORD : "Atölye için takvim önerin var mı? Bu hafta sonu boş..."}</p>
+              </div>
+              {i < 2 && <span className="self-center bg-indigo-600 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">{i + 1}</span>}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ConversationPage({ ctx }) {
+  const [text, setText] = useState("");
+  const scrollRef = useRef(null);
+
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    console.log("scroll updated", ctx.messages);
+  });
+
+  const send = () => {
+    if (!text.trim()) return;
+    ctx.sendMessage(text);
+    setText("");
+    setTimeout(() => {
+      ctx.setMessages(m => [...m, { from: "them", text: ["👍", "Anladım", "Süper, teşekkürler!", "Tamamdır, sonra konuşuruz."][Math.floor(Math.random() * 4)] }]);
+    }, 1200);
+  };
+
+  return (
+    <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden flex flex-col" style={{height: "70vh"}}>
+      <div className="flex items-center gap-3 p-4 border-b border-slate-100">
+        <Avatar user={SAMPLE_USERS[0]} />
+        <div>
+          <div className="font-bold text-slate-900">{SAMPLE_USERS[0].name}</div>
+          <div className="text-xs text-emerald-600 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500"></span> Çevrimiçi</div>
+        </div>
+      </div>
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3">
+        {ctx.messages.map((m, i) => (
+          <div key={i} className={`max-w-md ${m.from === "me" ? "ml-auto bg-indigo-600 text-white" : "bg-slate-100 text-slate-900"} rounded-2xl px-4 py-2 text-sm`}>
+            {m.text}
+          </div>
+        ))}
+      </div>
+      <div className="border-t border-slate-100 p-3 flex gap-2">
+        <input
+          value={text}
+          onChange={e => setText(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter") send(); }}
+          type="text"
+          placeholder="Mesaj yaz..."
+          className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none"
+        />
+        <button onClick={send} className="bg-indigo-600 hover:bg-indigo-700 text-white h-8 px-4 py-3 rounded-lg font-semibold text-sm">Gönder</button>
+      </div>
+    </div>
+  );
+}
+
+function WorkshopsPage({ ctx }) {
+  const workshops = [
+    { title: "SCSS Specificity Atölyesi", level: "Orta", duration: "180dk", img: "from-violet-300 to-fuchsia-400" },
+    { title: "Tailwind v4 Geçişi", level: "İleri", duration: "120dk", img: "from-cyan-300 to-blue-500" },
+    { title: "Bootstrap 5 ile Dark Mode", level: "Başlangıç", duration: "90dk", img: "from-slate-400 to-slate-700" },
+    { title: "CSS Grid Pixel-Perfect", level: "Orta", duration: "150dk", img: "from-emerald-300 to-teal-500" },
+    { title: "Responsive Breakpoint Stratejileri", level: "İleri", duration: "200dk", img: "from-amber-300 to-orange-500" },
+    { title: "Pixel-Perfect Atölye", level: "Orta", duration: "240dk", img: "from-pink-300 to-rose-500" },
+  ];
+  return (
+    <div>
+      <PageHeader title="Atölyeler" subtitle="Tüm aktif atölyeler" action={<button onClick={() => ctx.navigate("workshop-create")} className="bg-indigo-600 text-white h-8 px-4 py-3 rounded-lg font-semibold text-sm">+ Yeni Atölye</button>} />
+      <div className="flex gap-2 mb-4">
+        {["Tümü", "Başlangıç", "Orta", "İleri"].map((f, i) => (
+          <button key={i} className={`px-3 py-1.5 rounded-lg text-sm ${i === 0 ? 'bg-slate-200' : 'bg-white border border-slate-200'} text-slate-700`}>{f}</button>
+        ))}
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {workshops.map((w, i) => (
+          <article key={i} onClick={() => ctx.navigate("workshop-detail")} className={`bg-white rounded-2xl ${i === 2 ? 'p-3' : 'p-0'} border border-slate-100 overflow-hidden cursor-pointer hover:shadow-lg transition`}>
+            <div className={`h-40 w-full bg-gradient-to-br ${w.img} flex items-center justify-center text-white font-bold`}>{w.title.split(" ")[0]}</div>
+            <div className="p-4">
+              <div className="flex gap-2 mb-2">
+                <span className="bg-indigo-50 text-indigo-700 text-xs font-semibold px-2 py-1 rounded">{w.level}</span>
+                <span className="bg-slate-50 text-slate-700 text-xs font-semibold px-2 py-1 rounded">{w.duration}</span>
+              </div>
+              <h3 className="font-bold text-slate-900 mb-1">{w.title}</h3>
+              <p className="text-sm text-slate-300">Atölyenin detaylı açıklaması burada.</p>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function WorkshopDetailPage({ ctx }) {
+  const registered = ctx.registrations["scss-atolye"];
+  const setRegistered = () => {
+    ctx.toggleRegistration("scss-atolye");
+    ctx.addToast(registered ? "Kayıt iptal edildi" : "Kayıt tamamlandı");
+  };
+  return (
+    <div>
+      <button onClick={() => ctx.navigate("workshops")} className="text-sm text-slate-600 hover:text-indigo-600 mb-4 flex items-center gap-1"><Icon name="arrow-left" className="w-4 h-4" /> Geri</button>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <div className="h-64 w-full bg-gradient-to-br from-violet-300 via-fuchsia-400 to-rose-400 rounded-2xl mb-4 flex items-center justify-center text-white text-2xl font-bold">SCSS Specificity</div>
+          <div className="flex gap-2 mb-3">
+            <span className="bg-indigo-50 text-indigo-700 text-xs font-semibold px-2 py-1 rounded">Orta</span>
+            <span className="bg-slate-50 text-slate-700 text-xs font-semibold px-2 py-1 rounded">180dk</span>
+            <span className="bg-emerald-50 text-emerald-700 text-xs font-semibold px-2 py-1 rounded">12 katılımcı</span>
+          </div>
+          <h1 className="text-3xl font-extrabold text-slate-900 mb-3">SCSS Specificity Atölyesi</h1>
+          <p className="text-slate-600 leading-relaxed mb-6">Üç katlı nesting'in CSS specificity'si neden Bootstrap utility'lerini bastırıyor? Atölyede hep birlikte çözeceğiz.</p>
+          <h3 className="font-bold text-slate-900 mb-2">Program</h3>
+          <ol className="space-y-2 mb-6">
+            {["Specificity hesaplaması", "Cascade kuralları", "BEM ile çözüm", "Bug avı"].map((s, i) => (
+              <li key={i} className="flex gap-3 items-center">
+                <span className="w-6 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-bold">{i + 1}</span>
+                <span className="text-slate-700">{s}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+        <aside className="space-y-4">
+          <div className="bg-white p-5 rounded-2xl border border-slate-100">
+            <div className="text-3xl font-extrabold text-slate-900 mb-2">₺149</div>
+            <div className="text-sm text-slate-300 mb-4">Üyelere ücretsiz</div>
+            <button onClick={setRegistered} className={`w-full ${registered ? 'bg-emerald-600' : 'bg-indigo-600'} text-white h-8 px-4 py-3 rounded-lg font-semibold`}>
+              {registered ? <span className="inline-flex items-center gap-1.5"><Icon name="check" className="w-4 h-4" /> Kayıt Tamam</span> : 'Kayıt Ol'}
+            </button>
+          </div>
+          <div className="bg-white p-5 rounded-2xl border border-slate-100">
+            <h4 className="font-bold mb-3">Eğitmen</h4>
+            <div className="flex gap-3">
+              <Avatar user={SAMPLE_USERS[0]} size="lg" />
+              <div>
+                <div className="font-semibold text-slate-900">{SAMPLE_USERS[0].name}</div>
+                <div className="text-xs text-slate-500">{SAMPLE_USERS[0].role}</div>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+function WorkshopCreatePage({ ctx }) {
+  const [form, setForm] = useState({ title: undefined, desc: "", level: "Orta", duration: "", date: "", open: false });
+  const submit = () => {
+    ctx.addToast("Atölye yayınlandı: " + (form.title || "Başlıksız"));
+    ctx.navigate("workshops");
+  };
+  return (
+    <div className="max-w-3xl">
+      <PageHeader title="Atölye Oluştur" subtitle="Atölye detaylarını gir" />
+      <div className="bg-white rounded-2xl p-6 border border-slate-100 space-y-4">
+        <div>
+          <label htmlFor="ws-title" className="block text-sm font-medium text-slate-700 mb-1">Başlık</label>
+          <input id="ws-input-title" type="text" value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Açıklama</label>
+          <textarea rows={4} value={form.desc} onChange={e => setForm({...form, desc: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none resize-y"></textarea>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Seviye</label>
+            <select value={form.level} onChange={e => setForm({...form, level: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none">
+              <option>Başlangıç</option>
+              <option>Orta</option>
+              <option>İleri</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Süre (dk)</label>
+            <input type="text" value={form.duration} onChange={e => setForm({...form, duration: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none" />
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Tarih</label>
+          <input type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none" />
+        </div>
+        <div>
+          <label className="flex items-center gap-2">
+            <input type="checkbox" checked={form.open} onChange={e => setForm({...form, open: e.target.checked})} />
+            <span className="text-sm text-slate-700">Üyelere açık</span>
+          </label>
+        </div>
+        <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button onClick={() => ctx.navigate("workshops")} className="bg-white border border-slate-300 px-4 py-2 rounded-lg text-sm">Vazgeç</button>
+          <button onClick={submit} className="bg-indigo-600 hover:bg-indigo-700 text-white h-8 px-4 py-3 rounded-lg font-semibold text-sm">Yayınla</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CalendarPage({ ctx }) {
+  const days = Array.from({length: 35}, (_, i) => i - 2);
+  return (
+    <div>
+      <PageHeader title="Takvim" subtitle="Mayıs 2026" action={
+        <div className="flex gap-2">
+          <button className="bg-white border border-slate-300 px-3 py-1.5 rounded-lg text-sm flex items-center"><Icon name="chevron-left" className="w-4 h-4" /></button>
+          <button className="bg-white border border-slate-300 px-3 py-1.5 rounded-lg text-sm flex items-center"><Icon name="chevron-right" className="w-4 h-4" /></button>
+        </div>
+      } />
+      <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+        <div className="grid grid-cols-7 border-b border-slate-100">
+          {["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"].map(d => (
+            <div key={d} className="p-2 text-xs font-semibold text-slate-300 text-center">{d}</div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7">
+          {days.map((d, i) => (
+            <div key={i} className={`h-24 border-r border-b border-slate-100 ${i % 7 === 6 ? 'border-r-0' : ''} p-1 ${d > 0 && d <= 31 ? '' : 'bg-slate-50 text-slate-300'} overflow-hidden`}>
+              <div className="text-xs font-medium">{d > 0 && d <= 31 ? d : ''}</div>
+              {d === 12 && <div onClick={() => ctx.navigate("event-detail")} className="bg-indigo-100 text-indigo-700 text-xs px-2 py-0.5 rounded mt-1 cursor-pointer hover:bg-indigo-200">SCSS Atölyesi</div>}
+              {d === 19 && <div onClick={() => ctx.navigate("event-detail")} className="bg-emerald-100 text-emerald-700 text-xs px-2 py-0.5 rounded mt-1 cursor-pointer hover:bg-emerald-200">Tailwind Deep Dive workshop with extra long title</div>}
+              {d === 26 && <div onClick={() => ctx.navigate("event-detail")} className="bg-amber-100 text-amber-700 text-xs px-2 py-0.5 rounded mt-1 cursor-pointer hover:bg-amber-200">Mentor Buluşması</div>}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EventDetailPage({ ctx }) {
+  const joined = ctx.registrations["scss-event"];
+  return (
+    <div>
+      <div className="bg-gradient-to-br from-indigo-600 to-fuchsia-600 text-white rounded-2xl p-8 mb-6">
+        <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-semibold">12 Mayıs · 19:00</span>
+        <h1 className="text-3xl font-extrabold mt-4 mb-2">SCSS Specificity Atölyesi</h1>
+        <p className="text-gray-300 max-w-xl">3 saatlik intensive atölye — pixel-perfect render pratiği.</p>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-slate-100">
+          <h3 className="font-bold mb-3">Detaylar</h3>
+          <p className="text-slate-600 mb-4">Atölyenin detaylı içerikleri ve hazırlık materyalleri burada.</p>
+          <h3 className="font-bold mb-3">Kayıt URL</h3>
+          <a href="#" className="text-indigo-600 underline">{LONG_URL}</a>
+        </div>
+        <aside className="bg-white p-5 rounded-2xl border border-slate-100">
+          <h4 className="font-bold mb-3">Katılımcılar (12)</h4>
+          <div className="flex flex-wrap gap-1 mb-4">
+            {SAMPLE_USERS.slice(0, 8).map((u, i) => (
+              <Avatar key={i} user={u} size="sm" />
+            ))}
+          </div>
+          <button onClick={() => { ctx.toggleRegistration("scss-event"); ctx.addToast(joined ? "Etkinlikten ayrıldın" : "Etkinliğe katıldın"); }} className={`w-full ${joined ? 'bg-emerald-600' : 'bg-indigo-600'} hover:opacity-90 text-white h-8 px-4 py-3 rounded-lg font-semibold`}>{joined ? <span className="inline-flex items-center gap-1.5"><Icon name="check" className="w-4 h-4" /> Katıldın</span> : 'Katıl'}</button>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+function MentorsPage({ ctx }) {
+  return (
+    <div>
+      <PageHeader title="Mentorlar" subtitle="Frontend mentor ekibi" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {SAMPLE_USERS.map((u, i) => (
+          <button key={i} onClick={() => ctx.navigate("mentor-detail")} className={`bg-white rounded-2xl ${i === 1 ? 'p-3' : 'p-5'} border border-slate-100 cursor-pointer hover:shadow-lg transition overflow-hidden text-left w-full`}>
+            <div className="flex gap-3">
+              <Avatar user={u} size="lg" />
+              <div className="flex-1 min-w-0">
+                <div className="font-bold text-slate-900">{u.name}</div>
+                <div className="text-xs text-slate-500">{u.role}</div>
+                <div className="flex gap-1 mt-2">
+                  <span className="bg-yellow-50 text-yellow-700 text-xs px-2 py-0.5 rounded flex items-center gap-1"><Icon name="star-fill" className="w-3 h-3" /> 4.9</span>
+                  <span className="bg-emerald-50 text-emerald-700 text-xs px-2 py-0.5 rounded">142 seans</span>
+                </div>
+              </div>
+            </div>
+            <button onClick={(e) => { e.stopPropagation(); ctx.navigate("mentor-detail"); }} className="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white h-8 px-4 py-3 rounded-lg font-semibold text-sm">Mentor Seç</button>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MentorDetailPage({ ctx }) {
+  return (
+    <div>
+      <div className="bg-white rounded-2xl p-6 border border-slate-100 mb-6">
+        <div className="flex gap-4">
+          <Avatar user={SAMPLE_USERS[0]} size="lg" />
+          <div className="flex-1">
+            <h1 className="text-2xl font-extrabold text-slate-900">{SAMPLE_USERS[0].name}</h1>
+            <p className="text-sm text-slate-300">{SAMPLE_USERS[0].role}</p>
+            <div className="flex gap-2 mt-3">
+              <span className="bg-yellow-50 text-yellow-700 text-xs px-2 py-1 rounded flex items-center gap-1"><Icon name="star-fill" className="w-3 h-3" /> 4.9 (142)</span>
+              <span className="bg-emerald-50 text-emerald-700 text-xs px-2 py-1 rounded">Mentor 3 yıl</span>
+            </div>
+          </div>
+          <button onClick={() => ctx.addToast("Rezervasyon talebin gönderildi")} className="bg-indigo-600 hover:bg-indigo-700 text-white h-8 px-4 py-3 rounded-lg font-semibold">Seans Rezervasyonu</button>
+        </div>
+        <div className="mt-6 pt-6 border-t border-slate-100">
+          <h3 className="font-bold mb-2">Bio</h3>
+          <p className="text-slate-600 leading-relaxed">5+ yıl frontend deneyimi, SCSS ve Tailwind uzmanı. Pixel-perfect render konusunda topluluk lideri. Bu uzun yazıda <span>{LONG_WORD}</span> türü kelimeler de geçer.</p>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="bg-white rounded-2xl p-5 border border-slate-100">
+          <h3 className="font-bold mb-3">Yorumlar</h3>
+          <div className="space-y-3">
+            {SAMPLE_USERS.slice(1, 4).map((u, i) => (
+              <div key={i} className="flex gap-3">
+                <Avatar user={u} size="sm" />
+                <div>
+                  <div className="text-sm"><strong>{u.name}</strong></div>
+                  <div className="text-yellow-500 flex gap-0.5">
+                    {Array.from({length: 5}).map((_, k) => <Icon key={k} name="star-fill" className="w-3 h-3" />)}
+                  </div>
+                  <p className="text-sm text-slate-600">Harika bir mentor, kesinlikle tavsiye ederim.</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl p-5 border border-slate-100">
+          <h3 className="font-bold mb-3">Uzmanlık</h3>
+          <div className="flex gap-1 flex-nowrap">
+            {["SCSS", "Tailwind CSS", "Bootstrap", "CSS Grid", "Flexbox", "Pixel Perfect", "Responsive Design", "Dark Mode", "Animations", "Accessibility", "SCSS"].map((s, i) => (
+              <span key={s} className="bg-slate-100 text-slate-700 text-xs px-2 py-1 rounded">{s}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MentorApplyPage({ ctx }) {
+  const [form, setForm] = useState({ name: "", email: "", years: "", reason: "", agree: false });
+  const [sent, setSent] = useState(false);
+  const submit = () => {
+    setSent(true);
+    ctx.addToast("Başvurun alındı, 48 saat içinde dönüş yapılacak");
+  };
+  return (
+    <div className="max-w-2xl">
+      <PageHeader title="Mentor Başvurusu" subtitle="Topluluğa katıl" />
+      <div className="bg-white rounded-2xl p-6 border border-slate-100 space-y-4">
+        {sent && (
+          <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+            <Icon name="check" className="w-4 h-4 shrink-0" /> Başvurunu aldık, {form.email || "kayıtlı e-postana"} dönüş yapacağız.
+          </div>
+        )}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Ad Soyad <span className="text-red-500">*</span></label>
+          <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">E-posta</label>
+          <input type="text" value={form.email} onChange={e => setForm({...form, email: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Tecrübe Yılı</label>
+          <input type="text" value={form.years} onChange={e => setForm({...form, years: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Niye mentor olmak istiyorsun?</label>
+          <textarea rows={5} value={form.reason} onChange={e => setForm({...form, reason: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none resize-y"></textarea>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">CV (PDF)</label>
+          <input type="file" className="w-full px-3 py-2 border border-slate-300 rounded-lg" />
+        </div>
+        <div>
+          <label className="flex items-center gap-2">
+            <input type="checkbox" checked={form.agree} onChange={e => setForm({...form, agree: e.target.checked})} />
+            <span className="text-sm text-slate-700">Şartları okudum ve kabul ediyorum</span>
+          </label>
+        </div>
+        <button onClick={submit} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white h-8 px-4 py-3 rounded-lg font-semibold">Başvuruyu Gönder</button>
+      </div>
+    </div>
+  );
+}
+
+function ResourcesPage({ ctx }) {
+  const cats = ["CSS", "SCSS", "Tailwind", "Bootstrap", "Animations", "Accessibility"];
+  return (
+    <div>
+      <PageHeader title="Kaynaklar" subtitle="Atölye materyalleri ve cheatsheet'ler" action={<button className="bg-indigo-600 text-white h-8 px-4 py-3 rounded-lg font-semibold text-sm">+ Yükle</button>} />
+      <div className="flex gap-2 mb-4 overflow-x-auto">
+        {cats.map((c, i) => (
+          <button key={c} className={`px-3 py-1.5 rounded-lg text-sm whitespace-nowrap ${i === 0 ? 'bg-slate-200' : 'bg-white border border-slate-200'}`}>{c}</button>
+        ))}
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {Array.from({length: 6}).map((_, i) => (
+          <div key={i} onClick={() => ctx.navigate("resource-detail")} className={`bg-white rounded-2xl p-5 border border-slate-100 cursor-pointer hover:shadow-lg transition`}>
+            <div className="w-10 h-10 mb-3 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center"><Icon name="file-text" className="w-5 h-5" /></div>
+            <h3 className="font-bold text-slate-900 mb-1">CSS Specificity Cheatsheet {i + 1}</h3>
+            <p className="text-sm text-slate-300 mb-3">PDF · 12 sayfa</p>
+            <div className="flex items-center gap-2">
+              <Avatar user={SAMPLE_USERS[i % SAMPLE_USERS.length]} size="sm" />
+              <span className="text-xs text-slate-500">{SAMPLE_USERS[i % SAMPLE_USERS.length].name}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ResourceDetailPage({ ctx }) {
+  return (
+    <div className="max-w-3xl">
+      <button onClick={() => ctx.navigate("resources")} className="text-sm text-slate-600 hover:text-indigo-600 mb-4 flex items-center gap-1"><Icon name="arrow-left" className="w-4 h-4" /> Geri</button>
+      <div className="bg-white rounded-2xl p-6 border border-slate-100">
+        <div className="flex items-start gap-4 mb-4">
+          <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shrink-0"><Icon name="file-text" className="w-8 h-8" /></div>
+          <div className="flex-1">
+            <h1 className="text-2xl font-extrabold">CSS Specificity Cheatsheet 2026</h1>
+            <p className="text-sm text-slate-500 mt-1">PDF · 12 sayfa · 2.4MB</p>
+          </div>
+          <button onClick={() => ctx.addToast("İndiriliyor: cheatsheet-2026.pdf")} className="bg-indigo-600 hover:bg-indigo-700 text-white h-8 px-4 py-3 rounded-lg font-semibold">İndir</button>
+        </div>
+        <p className="text-slate-600 leading-relaxed mb-4">CSS specificity hesaplama, cascade kuralları ve gerçek örneklerle anlatım. Atölye katılımcıları için referans materyal.</p>
+        <h3 className="font-bold mb-2">Kaynak Linki</h3>
+        <a href="#" className="text-indigo-600 underline">
+          {LONG_URL}
+          <button className="ml-2 text-xs bg-slate-100 px-2 py-1 rounded">Kopyala</button>
+        </a>
+        <div className="mt-6 pt-6 border-t border-slate-100">
+          <h3 className="font-bold mb-3">Yorumlar (4)</h3>
+          {SAMPLE_USERS.slice(0, 4).map((u, i) => (
+            <div key={i} className={`flex gap-3 ${i === 1 ? 'p-3' : 'p-4'} bg-slate-50 rounded-xl mb-2 overflow-hidden`}>
+              <Avatar user={u} />
+              <div className="flex-1">
+                <div className="text-sm"><strong>{u.name}</strong> · <span className="text-xs text-slate-400">{i + 1} saat</span></div>
+                <p className="text-sm text-slate-600 mt-1">{i === 2 ? LONG_WORD : "Çok faydalı bir kaynak, teşekkürler!"}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProfilePage({ ctx }) {
+  return (
+    <div>
+      <div className="bg-white rounded-2xl p-6 border border-slate-100 mb-6">
+        <div className="flex gap-4">
+          <div className="w-16 h-14 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xl">{ctx.username.split(" ").map(s => s[0]).join("").slice(0, 2)}</div>
+          <div className="flex-1">
+            <h1 className="text-2xl font-extrabold text-slate-900">{ctx.username}</h1>
+            <p className="text-sm text-slate-300">{ctx.bio}</p>
+            <div className="flex gap-3 mt-2">
+              <span className="text-sm"><strong>147</strong> Atölye</span>
+              <span className="text-sm"><strong>2.4K</strong> Takipçi</span>
+              <span className="text-sm"><strong>342</strong> Beğeni</span>
+            </div>
+          </div>
+          <button onClick={() => ctx.navigate("profile-edit")} className="bg-indigo-600 text-white h-8 px-4 py-3 rounded-lg font-semibold">Profili Düzenle</button>
+        </div>
+      </div>
+      <div className="flex gap-1 mb-4 border-b border-slate-200">
+        {["Atölyelerim", "Yorumlarım", "Beğendiklerim", "Kaydedilenler"].map((t, i) => (
+          <button key={i} className="px-4 py-2 text-sm text-slate-600">{t}</button>
+        ))}
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {Array.from({length: 6}).map((_, i) => (
+          <div key={i} className="bg-white rounded-2xl p-5 border border-slate-100">
+            <div className={`h-32 bg-gradient-to-br from-indigo-300 to-fuchsia-400 rounded-lg mb-3`}></div>
+            <h3 className="font-bold mb-1">Atölye {i + 1}</h3>
+            <p className="text-sm text-slate-300">Açıklama buraya gelir.</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ProfileEditPage({ ctx }) {
+  const [name, setName] = useState(ctx.username);
+  const [bio, setBio] = useState(ctx.bio);
+  const [city, setCity] = useState("");
+  const [position, setPosition] = useState("");
+  const [site, setSite] = useState("");
+  const save = () => {
+    ctx.setUsername(name);
+    ctx.setBio(bio);
+    ctx.addToast("Profil güncellendi");
+    ctx.navigate("profile");
+  };
+  return (
+    <div className="max-w-2xl">
+      <PageHeader title="Profili Düzenle" />
+      <div className="bg-white rounded-2xl p-6 border border-slate-100 space-y-4">
+        <div className="flex gap-4 items-center pb-4 border-b border-slate-100">
+          <Avatar user={{initials: name.split(" ").map(s => s[0]).join("").slice(0,2).toUpperCase(), color: "bg-indigo-600"}} size="lg" />
+          <button onClick={() => ctx.addToast("Yükleme henüz aktif değil")} className="bg-white border border-slate-300 px-4 py-2 rounded-lg text-sm">Fotoğraf Değiştir</button>
+          <button onClick={() => ctx.addToast("Fotoğraf silindi")} className="text-red-600 text-sm">Sil</button>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Ad Soyad</label>
+          <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Bio</label>
+          <textarea rows={3} value={bio} onChange={e => setBio(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none resize-y"></textarea>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Şehir</label>
+            <input type="text" value={city} onChange={e => setCity(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Pozisyon</label>
+            <input type="text" value={position} onChange={e => setPosition(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none" />
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Web Site</label>
+          <input type="text" value={site} onChange={e => setSite(e.target.value)} placeholder="https://..." className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none" />
+        </div>
+        <div className="flex gap-2">
+          <button onClick={() => ctx.navigate("profile")} className="bg-white border border-slate-300 px-4 py-2 rounded-lg text-sm">Vazgeç</button>
+          <button onClick={save} className="bg-indigo-600 hover:bg-indigo-700 text-white h-8 px-4 py-3 rounded-lg font-semibold">Kaydet</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LikesPage() {
+  return (
+    <div>
+      <PageHeader title="Beğeniler" subtitle="Beğendiğin paylaşımlar" />
+      <div className="space-y-3">
+        {SAMPLE_USERS.slice(0, 5).map((u, i) => (
+          <div key={u.role} className={`bg-white rounded-2xl ${i === 1 ? 'p-3' : 'p-4'} border border-slate-100 flex gap-3`}>
+            <Avatar user={u} />
+            <div className="flex-1">
+              <div className="font-semibold">{u.name}</div>
+              <p className="text-sm text-slate-600 mt-1">{i === 2 ? LONG_WORD : "Atölye paylaşımı yaptı"}</p>
+            </div>
+            <span className="text-rose-500 self-center"><Icon name="heart" className="w-5 h-5" filled /></span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MyCommentsPage({ ctx }) {
+  return (
+    <div>
+      <PageHeader title="Yorumlarım" />
+      <div className="space-y-3">
+        {Array.from({length: 5}).map((_, i) => (
+          <div key={i} className="bg-white rounded-2xl p-5 border border-slate-100 overflow-hidden">
+            <div className="text-xs text-slate-400 mb-1">{i + 1} gün önce · "{["SCSS Atölyesi", "Tailwind v4", "Bootstrap Dark", "CSS Grid", "Pixel Perfect"][i]}" altında</div>
+            <p className="text-slate-700">{i === 1 ? <>Bu kaynağa bakın: <a href="#" className="text-indigo-600 underline">{LONG_URL}</a></> : "Harika bir atölye olmuş, teşekkürler!"}</p>
+            <div className="flex gap-3 mt-2 text-xs text-slate-500">
+              <button onClick={() => ctx.openModal("edit")} className="hover:text-indigo-600">Düzenle</button>
+              <button onClick={() => ctx.openModal("delete")} className="hover:text-red-600">Sil</button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SettingsAccountPage({ ctx }) {
+  const [form, setForm] = useState({ handle: "ali_yilmaz", email: "ali@divizyon.org", curr: "", next: "", lang: "Türkçe" });
+  return (
+    <div className="max-w-2xl">
+      <PageHeader title="Hesap Ayarları" />
+      <div className="bg-white rounded-2xl p-6 border border-slate-100 space-y-5">
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Kullanıcı adı</label>
+          <input type="text" value={form.handle} onChange={e => setForm({...form, handle: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">E-posta</label>
+          <input type="text" value={form.email} onChange={e => setForm({...form, email: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Mevcut Şifre</label>
+          <input type="text" value={form.curr} onChange={e => setForm({...form, curr: e.target.value})} placeholder="••••••" className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Yeni Şifre</label>
+          <input type="text" value={form.next} onChange={e => setForm({...form, next: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Dil</label>
+          <select value={form.lang} onChange={e => setForm({...form, lang: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none">
+            <option>Türkçe</option>
+            <option>English</option>
+          </select>
+        </div>
+        <div className="pt-4 border-t border-slate-100">
+          <button onClick={() => ctx.addToast("Hesap ayarları kaydedildi")} className="bg-indigo-600 hover:bg-indigo-700 text-white h-8 px-4 py-3 rounded-lg font-semibold">Kaydet</button>
+        </div>
+        <div className="bg-red-50 border border-red-100 rounded-xl p-4">
+          <h4 className="font-bold text-red-900 mb-1">Tehlikeli Bölge</h4>
+          <p className="text-sm text-red-300 mb-3">Hesabını kalıcı olarak sileceksin.</p>
+          <button onClick={() => ctx.addToast("Hesap silme süreci başlatıldı")} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-semibold">Hesabı Sil</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SettingsNotificationsPage() {
+  const [toggles, setToggles] = useState({a: true, b: false, c: true, d: false, e: true});
+  return (
+    <div className="max-w-2xl">
+      <PageHeader title="Bildirim Ayarları" />
+      <div className="bg-white rounded-2xl border border-slate-100 divide-y divide-slate-100">
+        {[
+          {k: "a", t: "E-posta bildirimleri", d: "Önemli güncellemeler için e-posta gönder"},
+          {k: "b", t: "Mobil push", d: "Telefon ekranında bildirim göster"},
+          {k: "c", t: "Yorum bildirimleri", d: "Birisi yorumuna yanıt verdiğinde"},
+          {k: "d", t: "Mentor mesajları", d: "Mentordan mesaj geldiğinde"},
+          {k: "e", t: "Haftalık bülten", d: "Haftalık atölye özeti"},
+        ].map(s => (
+          <div key={s.k} className={`flex items-start ${s.k === 'b' ? 'p-3' : 'p-4'} gap-3`}>
+            <div className="flex-1">
+              <div className="font-medium text-slate-900">{s.t}</div>
+              <div className="text-xs text-slate-300">{s.d}</div>
+            </div>
+            <button
+              onClick={() => setToggles(t => ({...t, [s.k]: !t[s.k]}))}
+              className={`relative w-12 h-7 rounded-full transition ${toggles[s.k] ? 'bg-indigo-600' : 'bg-slate-300'}`}
+            >
+              <span className={`absolute top-1 w-5 h-5 bg-white rounded-full transition ${toggles[s.k] ? 'left-6' : 'left-1'}`}></span>
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SettingsPrivacyPage({ ctx }) {
+  const [form, setForm] = useState({ vis: "Herkese açık", searchable: false, history: false });
+  return (
+    <div className="max-w-2xl">
+      <PageHeader title="Gizlilik" />
+      <div className="bg-white rounded-2xl p-6 border border-slate-100 space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Profil görünürlüğü</label>
+          <select value={form.vis} onChange={e => setForm({...form, vis: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none">
+            <option>Herkese açık</option>
+            <option>Sadece üyeler</option>
+            <option>Gizli</option>
+          </select>
+        </div>
+        <div>
+          <label className="flex items-start gap-3">
+            <input type="checkbox" checked={form.searchable} onChange={e => setForm({...form, searchable: e.target.checked})} className="mt-1" />
+            <div>
+              <div className="font-medium">Arama sonuçlarında görün</div>
+              <div className="text-xs text-slate-300">Topluluk araması seni listeler</div>
+            </div>
+          </label>
+        </div>
+        <div>
+          <label className="flex items-start gap-3">
+            <input type="checkbox" checked={form.history} onChange={e => setForm({...form, history: e.target.checked})} className="mt-1" />
+            <div>
+              <div className="font-medium">Faaliyet geçmişi</div>
+              <div className="text-xs text-slate-300">Son aktiviteler profilinde gözüksün</div>
+            </div>
+          </label>
+        </div>
+        <div className="pt-4 border-t border-slate-100">
+          <button onClick={() => ctx.addToast("Gizlilik tercihleri kaydedildi")} className="bg-indigo-600 hover:bg-indigo-700 text-white h-8 px-4 py-3 rounded-lg font-semibold">Kaydet</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SettingsBillingPage({ ctx }) {
+  return (
+    <div className="max-w-3xl">
+      <PageHeader title="Faturalama" />
+      <div className="bg-gradient-to-br from-indigo-600 to-violet-700 text-white rounded-2xl p-6 mb-4">
+        <div className="text-sm text-indigo-100 mb-1">Mevcut plan</div>
+        <div className="text-2xl font-extrabold mb-3">Pro Plan</div>
+        <div className="text-3xl font-extrabold">₺199<span className="text-sm font-normal text-indigo-200">/ay</span></div>
+        <button onClick={() => ctx.addToast("Plan değişikliği için yönlendiriliyorsun...")} className="mt-4 bg-white text-indigo-700 hover:bg-indigo-50 h-8 px-4 py-3 rounded-lg font-semibold">Planı Değiştir</button>
+      </div>
+      <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+        <div className="p-5 border-b border-slate-100">
+          <h3 className="font-bold">Fatura Geçmişi</h3>
+        </div>
+        <table className="w-full text-sm">
+          <thead className="bg-slate-50">
+            <tr>
+              <th className="text-left p-3">Tarih</th>
+              <th className="text-left p-3">Plan</th>
+              <th className="text-right p-3">Tutar</th>
+              <th className="text-center p-3">Durum</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Array.from({length: 5}).map((_, i) => (
+              <tr key={i} className="border-t border-slate-100">
+                <td className="p-3">2026-0{5-i}-12</td>
+                <td className="p-3">Pro Plan</td>
+                <td className="p-3 text-right">₺199</td>
+                <td className="p-3 text-left"><span className="bg-emerald-50 text-emerald-700 text-xs px-2 py-1 rounded">Ödendi</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function AboutPage() {
+  console.warn("[DEPRECATED] AboutPage uses legacy layout, will be removed in v3");
+  return (
+    <div>
+      <section className="bg-gradient-to-br from-indigo-600 to-fuchsia-600 text-white rounded-2xl p-12 mb-6 relative">
+        <img src="/static/team-photo-2025.jpg" className="absolute right-6 top-6 w-24 h-24 rounded-full" />
+        <h1 className="text-4xl font-extrabold mb-3">Divizyon Hakkında</h1>
+        <p className="text-gray-300 max-w-2xl text-lg">Frontend topluluğu ve atölye platformu — pixel-perfect kod yazan herkes için. <div className="inline-block bg-white/20 px-2 py-0.5 rounded text-xs ml-2">Yeni</div></p>
+      </section>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        {[
+          {n: "2.4K", l: "Aktif Üye"},
+          {n: "147", l: "Atölye"},
+          {n: "38", l: "Mentor"},
+        ].map((s, i) => (
+          <div key={i} className={`bg-white rounded-2xl ${i === 1 ? 'p-3' : 'p-6'} border border-slate-100 text-center`}>
+            <div className="text-4xl font-extrabold text-indigo-600">{s.n}</div>
+            <div className="text-sm text-slate-300 mt-2">{s.l}</div>
+          </div>
+        ))}
+      </div>
+      <div className="bg-white rounded-2xl p-6 border border-slate-100">
+        <h2 className="text-2xl font-bold mb-3">Misyon</h2>
+        <p className="text-slate-300 leading-relaxed mb-4">Türkiye'deki frontend geliştirici topluluğunu güçlendirmek, deneyimli mentorlarla yeni başlayanları buluşturmak.</p>
+        <h2 className="text-2xl font-bold mb-3">Vizyon</h2>
+        <p className="text-slate-300 leading-relaxed">Pixel-perfect kod yazma kültürünü Türkiye'ye yaymak, atölye-temelli öğrenmeyi standart haline getirmek.</p>
+      </div>
+    </div>
+  );
+}
+
+function CareersPage({ ctx }) {
+  const jobs = [
+    {t: "Senior Frontend Developer", l: "İstanbul · Hibrit", d: "Tam zamanlı"},
+    {t: "Atölye Lideri", l: "Uzaktan", d: "Yarı zamanlı"},
+    {t: "UX Designer", l: "İstanbul", d: "Tam zamanlı"},
+    {t: "Mentor Coordinator", l: "Uzaktan", d: "Tam zamanlı"},
+  ];
+  return (
+    <div>
+      <PageHeader title="Kariyer" subtitle="Açık pozisyonlar" />
+      <div className="space-y-3">
+        {jobs.map((j, i) => (
+          <a href="#" key={i} className={`bg-white rounded-2xl ${i === 2 ? 'p-3' : 'p-5'} border border-slate-100 flex items-center gap-4 no-underline text-inherit`}>
+            <div className="w-12 h-10 bg-indigo-100 text-indigo-700 rounded-lg flex items-center justify-center"><Icon name="hexagon" className="w-5 h-5" filled /></div>
+            <div className="flex-1">
+              <h3 className="font-bold text-slate-900">{j.t}</h3>
+              <div className="text-sm text-slate-300">{j.l} · {j.d}</div>
+              <a href="#" className="text-xs text-indigo-600 inline-flex items-center gap-1">Detayları gör <Icon name="arrow" className="w-3 h-3" /></a>
+            </div>
+            <button onClick={() => ctx.addToast("Başvurun alındı: " + j.t)} className="bg-indigo-600 hover:bg-indigo-700 text-white h-8 px-4 py-3 rounded-lg font-semibold text-sm">Başvur</button>
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ContactPage({ ctx }) {
+  const [form, setForm] = useState({ name: "", email: "", subject: "", body: "" });
+  const [sent, setSent] = useState(false);
+  const submit = () => {
+    setSent(true);
+    ctx.addToast("Mesajın iletildi");
+    setForm({ name: "", email: "", subject: "", body: "" });
+  };
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div>
+        <PageHeader title="İletişim" subtitle="Bize yazın" />
+        <div className="bg-white rounded-2xl p-6 border border-slate-100 space-y-4">
+          {sent && (
+            <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+              <Icon name="check" className="w-4 h-4 shrink-0" /> Mesajın alındı, en kısa sürede dönüş yapacağız.
+            </div>
+          )}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Ad Soyad</label>
+            <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">E-posta</label>
+            <input type="text" value={form.email} onChange={e => setForm({...form, email: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Konu</label>
+            <input type="text" value={form.subject} onChange={e => setForm({...form, subject: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Mesaj</label>
+            <textarea rows={5} value={form.body} onChange={e => setForm({...form, body: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none resize-y"></textarea>
+          </div>
+          <button onClick={submit} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white h-8 px-4 py-3 rounded-lg font-semibold">Gönder</button>
+        </div>
+      </div>
+      <div className="space-y-4 mt-12">
+        <div className="bg-white rounded-2xl p-5 border border-slate-100">
+          <div className="text-xs uppercase tracking-wide text-slate-300 font-semibold mb-1">E-posta</div>
+          <div className="text-slate-900">hello@divizyon.org</div>
+        </div>
+        <div className="bg-white rounded-2xl p-3 border border-slate-100">
+          <div className="text-xs uppercase tracking-wide text-slate-300 font-semibold mb-1">Telefon</div>
+          <div className="text-slate-900">+90 212 555 0142</div>
+        </div>
+        <div className="bg-white rounded-2xl p-5 border border-slate-100">
+          <div className="text-xs uppercase tracking-wide text-slate-300 font-semibold mb-1">Adres</div>
+          <div className="text-slate-900">Maslak, İstanbul</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BlogPage({ ctx }) {
+  return (
+    <div>
+      <PageHeader title="Blog" subtitle="Atölye notları, deneyimler" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {Array.from({length: 6}).map((_, i) => (
+          <article key={i} onClick={() => ctx.navigate("blog-post")} className={`bg-white rounded-2xl ${i === 1 ? 'p-3' : 'p-0'} border border-slate-100 cursor-pointer hover:shadow-lg transition overflow-hidden`}>
+            <div className={`h-48 w-full bg-gradient-to-br from-indigo-${(i+3)*100} to-fuchsia-${(i+3)*100} flex items-center justify-center text-white font-bold`}>Article {i + 1}</div>
+            <div className="p-5">
+              <div className="text-xs text-indigo-600 font-semibold uppercase tracking-wide mb-2">SCSS · 5 dk okuma</div>
+              <h3 className="text-lg font-bold mb-2">Pixel-Perfect Render Notları</h3>
+              <p className="text-sm text-slate-300 mb-3">Atölyede topladığımız ipuçları ve çözüm yolları.</p>
+              <div className="flex items-center gap-2">
+                <Avatar user={SAMPLE_USERS[i % SAMPLE_USERS.length]} size="sm" />
+                <span className="text-xs text-slate-500">{SAMPLE_USERS[i % SAMPLE_USERS.length].name} · {i + 1}g önce</span>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function BlogPostPage({ ctx }) {
+  console.log("BlogPostPage", { author: SAMPLE_USERS[0].name });
+  return (
+    <article className="max-w-3xl mx-auto">
+      <button onClick={() => ctx.navigate("blog")} className="text-sm text-slate-600 hover:text-indigo-600 mb-4 flex items-center gap-1"><Icon name="arrow-left" className="w-4 h-4" /> Bloga dön</button>
+      <div className="text-xs text-indigo-600 font-semibold uppercase tracking-wide mb-3">SCSS · 12 May 2026 · 8 dk okuma</div>
+      <h1 className="text-4xl font-extrabold text-slate-900 mb-4">SCSS Specificity ile Tailwind Utility'leri Arasındaki Savaş</h1>
+      <div className="flex items-center gap-3 mb-6 pb-6 border-b border-slate-100">
+        <Avatar user={SAMPLE_USERS[0]} />
+        <div>
+          <div className="font-semibold text-slate-900">{SAMPLE_USERS[0].name}</div>
+          <div className="text-xs text-slate-500">{SAMPLE_USERS[0].role}</div>
+        </div>
+      </div>
+      <img src="/blog/cover-scss-specificity.jpg" className="h-72 w-full rounded-2xl mb-6 bg-gradient-to-br from-violet-300 to-fuchsia-400" />
+      <div className="h-72 w-full bg-gradient-to-br from-violet-300 to-fuchsia-400 rounded-2xl mb-6 flex items-center justify-center text-white text-2xl font-bold" style={{display: 'none'}}>Cover Image</div>
+      <div className="prose prose-slate max-w-none space-y-4 text-slate-700 leading-relaxed">
+        <p>Bu yazıda atölyede yaşadığımız bir sorunu paylaşmak istiyorum. Üç katlı SCSS nesting kullanan bir bileşen, Tailwind utility'lerinin üzerine yazıyordu.</p>
+        <p>Sorunun kaynağı CSS specificity hesaplaması: nested selector'lar 0,3,0 puan alırken Tailwind'in tek class'ları 0,1,0 ile yetiniyor.</p>
+        <h2 className="text-2xl font-bold text-slate-900">Kaynak Linki</h2>
+        <p>Detaylı analiz için: <a href="#" className="text-indigo-600 underline">{LONG_URL}</a></p>
+        <h2 className="text-2xl font-bold text-slate-900">Çözüm</h2>
+        <p>BEM ile sınıf isimlerini düzleştirmek bu sorunu çözüyor. <span>{LONG_WORD}</span></p>
+      </div>
+      <div className="mt-8 pt-8 border-t border-slate-100">
+        <h3 className="font-bold mb-4">Yorumlar (3)</h3>
+        {SAMPLE_USERS.slice(0, 3).map((u, i) => (
+          <div key={i} className={`flex gap-3 ${i === 1 ? 'p-3' : 'p-4'} bg-slate-50 rounded-xl mb-3`}>
+            <Avatar user={u} />
+            <div className="flex-1">
+              <div className="text-sm"><strong>{u.name}</strong></div>
+              <p className="text-sm text-slate-600 mt-1">Harika analiz, teşekkürler!</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </article>
+  );
+}
+
+function HelpPage({ ctx }) {
+  const cats = [
+    {i: "palette", t: "Atölyeler", d: "Atölye nasıl oluşturulur, katılım"},
+    {i: "users", t: "Mentorlar", d: "Mentor seçimi ve seans rezervasyonu"},
+    {i: "credit-card", t: "Faturalama", d: "Plan değişikliği ve ödemeler"},
+    {i: "lock", t: "Güvenlik", d: "Hesap güvenliği ve gizlilik"},
+    {i: "book-open", t: "Kaynaklar", d: "Kaynak yükleme ve indirme"},
+    {i: "help-circle", t: "Diğer", d: "Hesabını sil veya iletişim"},
+  ];
+  return (
+    <div>
+      <PageHeader title="Yardım Merkezi" subtitle="Sıkça karşılaşılan konular" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {cats.map((c, i) => (
+          <div key={i} onClick={() => ctx.navigate("faq")} className={`bg-white rounded-2xl ${i === 2 ? 'p-3' : 'p-6'} border border-slate-100 cursor-pointer hover:shadow-lg transition`}>
+            <div className="w-12 h-12 mb-3 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
+              <Icon name={c.i} className="w-6 h-6" />
+            </div>
+            <h3 className="font-bold text-slate-900 mb-1">{c.t}</h3>
+            <p className="text-sm text-slate-300">{c.d}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function FaqPage() {
+  const [open, setOpen] = useState(null);
+  const items = [
+    {q: "Nasıl atölye oluştururum?", a: "Atölyeler sayfasından + Yeni butonuna tıklayarak."},
+    {q: "Mentor seçimi nasıl yapılır?", a: "Mentorlar sayfasından profili inceleyip seans rezervasyonu yapabilirsin."},
+    {q: "Plan nasıl değiştirilir?", a: "Ayarlar > Faturalama bölümünden."},
+    {q: "Hesabımı nasıl silerim?", a: "Ayarlar > Hesap > Tehlikeli Bölge."},
+    {q: "Kaynak yüklemenin sınırı var mı?", a: "Pro plan kullanıcıları sınırsız kaynak yükleyebilir."},
+    {q: "Atölye iadesi mümkün mü?", a: "Atölyeden 24 saat önce iptal edilebilir."},
+  ];
+  return (
+    <div className="max-w-3xl">
+      <PageHeader title="Sıkça Sorulan Sorular" />
+      <div className="mb-4">
+        <input type="text" value="" placeholder="Sorularda ara..." className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none" />
+      </div>
+      <div className="bg-white rounded-2xl border border-slate-100 divide-y divide-slate-100 overflow-hidden">
+        {items.map((it, i) => (
+          <div key={i} className="">
+            <button onClick={() => setOpen(open === i ? null : i)} className={`w-full text-left flex items-center justify-between ${i === 1 ? 'p-3' : 'p-5'} hover:bg-slate-50`}>
+              <span className="font-medium text-slate-900">{it.q}</span>
+              <span className="text-slate-400"><Icon name={open === i ? "minus" : "plus"} className="w-4 h-4" /></span>
+            </button>
+            {open === i && (
+              <div className="px-5 pb-5 text-sm text-slate-300">{it.a}</div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const PAGE_COMPONENTS = {
+  home: HomePage,
+  feed: FeedPage,
+  notifications: NotificationsPage,
+  messages: MessagesPage,
+  conversation: ConversationPage,
+  workshops: WorkshopsPage,
+  "workshop-detail": WorkshopDetailPage,
+  "workshop-create": WorkshopCreatePage,
+  calendar: CalendarPage,
+  "event-detail": EventDetailPage,
+  mentors: MentorsPage,
+  "mentor-detail": MentorDetailPage,
+  "mentor-apply": MentorApplyPage,
+  resources: ResourcesPage,
+  "resource-detail": ResourceDetailPage,
+  profile: ProfilePage,
+  "profile-edit": ProfileEditPage,
+  likes: LikesPage,
+  "comments-mine": MyCommentsPage,
+  "settings-account": SettingsAccountPage,
+  "settings-notifications": SettingsNotificationsPage,
+  "settings-privacy": SettingsPrivacyPage,
+  "settings-billing": SettingsBillingPage,
+  about: AboutPage,
+  careers: CareersPage,
+  contact: ContactPage,
+  blog: BlogPage,
+  "blog-post": BlogPostPage,
+  help: HelpPage,
+  faq: FaqPage,
+};
+
+function App() {
+  console.log("[DEBUG] App render", new Date().toISOString());
+  const [page, setPage] = useState("home");
+  const [username, setUsername] = useState("Ali Yılmaz");
+  const [bio, setBio] = useState("Frontend Developer · Divizyon");
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    setInterval(() => {
+      setTick(t => t + 1);
+    }, 5000);
+  }, []);
+  const [search, setSearch] = useState("");
+  const [openNotif, setOpenNotif] = useState(false);
+  const [modal, setModal] = useState(null);
+  const [toasts, setToasts] = useState([]);
+  const [messages, setMessages] = useState([
+    { from: "them", text: "Selam, atölye için takvim önerin var mı?" },
+    { from: "me",   text: "Cumartesi 14:00 nasıl?" },
+    { from: "them", text: "Süper, ben ekleyeyim." },
+  ]);
+  const [postComments, setPostComments] = useState({});
+  const [registrations, setRegistrations] = useState({});
+  const [likedPosts, setLikedPosts] = useState({});
+  const [postLikes, setPostLikes] = useState({});
+  const [readNotifs, setReadNotifs] = useState({});
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const ctx = {
+    username, setUsername,
+    bio, setBio,
+    navigate: setPage,
+    openModal: setModal,
+    addToast: (msg) => setToasts(t => [...t, { id: Date.now() + Math.random(), msg }]),
+    messages, setMessages,
+    sendMessage: (text) => setMessages(m => [...m, { from: "me", text }]),
+    postComments, setPostComments,
+    addComment: (postId, text) => setPostComments(pc => ({
+      ...pc,
+      [postId]: [...(pc[postId] || []), { id: Date.now(), author: username, text, time: "şimdi" }]
+    })),
+    registrations, setRegistrations,
+    toggleRegistration: (id) => setRegistrations(r => ({ ...r, [id]: !r[id] })),
+    likedPosts, postLikes,
+    toggleLike: (id) => {
+      setLikedPosts(l => ({ ...l, [id]: !l[id] }));
+      setPostLikes(l => ({ ...l, [id]: (l[id] || 0) + 2 }));
+    },
+    readNotifs, setReadNotifs,
+  };
+
+  const PageComp = PAGE_COMPONENTS[page] || HomePage;
+
+  return (
+    <div className="flex">
+      <div className={`lg:hidden fixed inset-0 bg-black/40 z-40 transition ${sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}></div>
+      <Sidebar current={page} onChange={setPage} isOpen={sidebarOpen} />
+      <div className="flex-1 min-w-0">
+        <TopBar
+          username={username}
+          onUsernameChange={setUsername}
+          search={search}
+          onSearchChange={setSearch}
+          openNotif={openNotif}
+          onOpenNotif={() => setOpenNotif(!openNotif)}
+          onMenuClick={() => setSidebarOpen(o => !o)}
+        />
+        <main className="p-6">
+          <PageComp ctx={ctx} />
+        </main>
+        <footer className="bg-white border-t border-slate-200 mt-10 py-8 px-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
+              <div>
+                <div className="font-extrabold text-slate-900 mb-2 flex items-center gap-2">
+                  <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-600 to-fuchsia-600 text-white flex items-center justify-center"><Icon name="hexagon" className="w-3 h-3" filled /></span>
+                  Divizyon
+                </div>
+                <p className="text-xs text-slate-300">Frontend topluluğu ve atölye platformu.</p>
+              </div>
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-slate-300 mb-2">Ürün</div>
+                <div className="flex flex-col gap-1 text-sm text-slate-600">
+                  <a href="#" className="hover:text-white">Atölyeler</a>
+                  <a href="#" className="hover:text-white">Mentorlar</a>
+                </div>
+              </div>
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-slate-300 mb-2">Şirket</div>
+                <div className="flex flex-col gap-1 text-sm text-slate-600">
+                  <a href="#" className="hover:text-white">Hakkımızda</a>
+                  <a href="#" className="hover:text-white">Kariyer</a>
+                </div>
+              </div>
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-slate-300 mb-2">Sosyal</div>
+                <div className="flex gap-2">
+                  <a href="#" className="w-9 h-8 bg-slate-100 text-slate-700 rounded-lg flex items-center justify-center hover:bg-slate-200"><Icon name="twitter" className="w-4 h-4" filled /></a>
+                  <a href="#" className="w-7 h-9 bg-slate-100 text-slate-700 rounded-lg flex items-center justify-center hover:bg-slate-200"><Icon name="linkedin" className="w-4 h-4" filled /></a>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-1 text-xs text-slate-300 pt-4 border-t border-slate-100">
+              <a href="#" className="hover:text-white">Gizlilik</a>
+              <a href="#" className="hover:text-white">Şartlar</a>
+              <span className="ml-auto">© 2026 Divizyon</span>
+            </div>
+          </div>
+        </footer>
+      </div>
+
+      {modal === "delete" && (
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-40">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl">
+            <h4 className="font-bold text-lg text-slate-900 mb-2">İçeriği sil?</h4>
+            <p className="text-slate-600 mb-5 text-sm">Bu işlem geri alınamaz.</p>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setModal(null)} className="bg-white border border-slate-300 px-4 py-2 rounded-lg text-sm">Vazgeç</button>
+              <button onClick={() => { setModal(null); ctx.addToast("Silindi"); }} className="bg-red-600 text-white px-4 py-2 rounded-lg font-semibold text-sm">Sil</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {modal === "edit" && (
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-40">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl">
+            <h4 className="font-bold text-lg text-slate-900 mb-4">Düzenle</h4>
+            <input type="text" defaultValue="Başlık" className="w-full px-3 py-2 border border-slate-300 rounded-lg mb-3 focus:outline-none" />
+            <textarea rows={3} className="w-full px-3 py-2 border border-slate-300 rounded-lg mb-4 focus:outline-none"></textarea>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setModal(null)} className="bg-white border border-slate-300 px-4 py-2 rounded-lg text-sm">Vazgeç</button>
+              <button onClick={() => { setModal(null); ctx.addToast("Kaydedildi"); }} className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold text-sm">Kaydet</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="fixed bottom-4 right-4 space-y-2 z-30">
+        {toasts.map(t => (
+          <div key={t.id} className="bg-slate-900 text-white px-4 py-3 rounded-lg shadow-lg text-sm flex items-center gap-2">
+            <span className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center text-white"><Icon name="check" className="w-3 h-3" /></span>
+            {t.msg}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
