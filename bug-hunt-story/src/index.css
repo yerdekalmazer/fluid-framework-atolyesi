@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.font-serif {
+  font-family: "Source Serif 4", Georgia, serif;
+}
+
+.paper {
+  background-image:
+    linear-gradient(to bottom, rgba(120, 113, 108, 0.04) 0%, transparent 1px),
+    linear-gradient(to right,  rgba(120, 113, 108, 0.04) 0%, transparent 1px);
+  background-size: 24px 24px;
+}
+
+@keyframes ink-fade-in {
+  from { opacity: 0; transform: translateY(2px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.ink-fade { animation: ink-fade-in 250ms ease-out both; }
