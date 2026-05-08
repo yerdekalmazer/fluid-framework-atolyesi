@@ -3119,37 +3119,54 @@ function renderAll() {
 Object.values(editors).forEach(ed => ed.on('change', renderAll));
 renderAll();
 
-// File tabs
+// Pane <-> framework eşleşmesi (kod sekmesi ile önizleme arasında senkron)
+const PANE_TO_FW = { bootstrap: 'bootstrap', tailwind: 'tailwind', scssHtml: 'scss', scssCss: 'scss' };
+const FW_TO_PANE = { bootstrap: 'bootstrap', tailwind: 'tailwind', scss: 'scssHtml' };
+
+const previewArea = document.getElementById('previewArea');
+
+function setCodePane(key, { focus = true } = {}) {
+  document.querySelectorAll('.file-tab').forEach(t => t.classList.toggle('active', t.dataset.pane === key));
+  document.querySelectorAll('.editor-pane').forEach(p => p.classList.toggle('active', p.id === 'pane-' + key));
+  setTimeout(() => {
+    editors[key].refresh();
+    if (focus) editors[key].focus();
+  }, 0);
+}
+
+function setPreviewFw(fw) {
+  document.querySelectorAll('#frameworkSeg button').forEach(x => x.classList.toggle('active', x.dataset.fw === fw));
+  const frames = previewArea.querySelectorAll('.frame');
+  if (fw === 'all') {
+    previewArea.classList.remove('single');
+    previewArea.classList.add('triple');
+    frames.forEach(f => f.style.display = 'flex');
+  } else {
+    previewArea.classList.remove('triple');
+    previewArea.classList.add('single');
+    frames.forEach(f => f.style.display = f.dataset.fw === fw ? 'flex' : 'none');
+  }
+}
+
+// File tabs — kod sekmesi değişince önizleme de eşleşsin
 document.querySelectorAll('.file-tab').forEach(tab => {
   tab.addEventListener('click', () => {
-    document.querySelectorAll('.file-tab').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    document.querySelectorAll('.editor-pane').forEach(p => p.classList.remove('active'));
     const key = tab.dataset.pane;
-    document.getElementById('pane-' + key).classList.add('active');
-    setTimeout(() => {
-      editors[key].refresh();
-      editors[key].focus();
-    }, 0);
+    setCodePane(key);
+    setPreviewFw(PANE_TO_FW[key]);
   });
 });
 
-// Framework segmented
-const previewArea = document.getElementById('previewArea');
+// Framework segmented — önizleme değişince kod sekmesi de eşleşsin
+// Karşılaştırma'da kod sekmesi DEĞİŞMEZ. SCSS'te aktif sekme zaten scss ise (scssHtml/scssCss) korunur.
 document.querySelectorAll('#frameworkSeg button').forEach(b => {
   b.addEventListener('click', () => {
-    document.querySelectorAll('#frameworkSeg button').forEach(x => x.classList.remove('active'));
-    b.classList.add('active');
     const fw = b.dataset.fw;
-    const frames = previewArea.querySelectorAll('.frame');
-    if (fw === 'all') {
-      previewArea.classList.remove('single');
-      previewArea.classList.add('triple');
-      frames.forEach(f => f.style.display = 'flex');
-    } else {
-      previewArea.classList.remove('triple');
-      previewArea.classList.add('single');
-      frames.forEach(f => f.style.display = f.dataset.fw === fw ? 'flex' : 'none');
+    setPreviewFw(fw);
+    if (fw === 'all') return;
+    const currentPane = document.querySelector('.file-tab.active').dataset.pane;
+    if (PANE_TO_FW[currentPane] !== fw) {
+      setCodePane(FW_TO_PANE[fw], { focus: false });
     }
   });
 });
