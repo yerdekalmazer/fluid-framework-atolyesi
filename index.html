@@ -27,6 +27,8 @@
     --bs: #7c3aed;
     --tw: #06b6d4;
     --sc: #cd6799;
+    --code-zoom: 1;
+    --preview-zoom: 1;
   }
 
   * { box-sizing: border-box; }
@@ -333,7 +335,7 @@
   .CodeMirror {
     height: 100% !important;
     font-family: 'JetBrains Mono', monospace !important;
-    font-size: 13px !important;
+    font-size: calc(13px * var(--code-zoom)) !important;
     line-height: 1.65 !important;
     background: transparent !important;
     color: #d8d9e8 !important;
@@ -343,7 +345,7 @@
     border: none !important;
     padding-right: 8px;
   }
-  .CodeMirror-linenumber { color: #3f4255 !important; font-size: 11px !important; }
+  .CodeMirror-linenumber { color: #3f4255 !important; font-size: calc(11px * var(--code-zoom)) !important; }
   .CodeMirror-cursor { border-left: 2px solid var(--accent) !important; }
   .CodeMirror-selected { background: rgba(167,139,250,0.18) !important; }
   .cm-tag { color: #f472b6 !important; }
@@ -490,6 +492,47 @@
   }
   .device-toggle svg { width: 14px; height: 14px; }
 
+  .zoom-toggle {
+    display: inline-flex;
+    align-items: center;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 2px;
+  }
+  .zoom-toggle button {
+    width: 24px; height: 26px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    border-radius: 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1;
+    padding: 0;
+  }
+  .zoom-toggle button:hover { color: var(--text); background: var(--bg-3); }
+  .zoom-toggle button:disabled { opacity: 0.35; cursor: not-allowed; }
+  .zoom-toggle button:disabled:hover { color: var(--muted); background: transparent; }
+  .zoom-toggle .zoom-label {
+    min-width: 40px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-2);
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+    user-select: none;
+    padding: 0 4px;
+  }
+  .zoom-toggle .zoom-label:hover { color: var(--text); }
+
   .preview-area {
     flex: 1;
     overflow: hidden;
@@ -563,11 +606,14 @@
 
   .frame-body { flex: 1; position: relative; background: #fff; overflow: hidden; }
   .frame-body iframe {
-    width: 100%;
-    height: 100%;
+    width: calc(100% / var(--preview-zoom));
+    height: calc(100% / var(--preview-zoom));
     border: none;
     background: #fff;
     display: block;
+    transform: scale(var(--preview-zoom));
+    transform-origin: top left;
+    transition: transform 0.18s ease;
   }
 
   .preview-area.device-tablet .frame-body iframe { max-width: 768px; margin: 0 auto; display: block; box-shadow: 0 0 0 9999px #f4f4f6 inset; background: #fff; }
@@ -830,6 +876,13 @@
         <button class="file-tab" data-pane="scssHtml"><span class="dot sc"></span>scss.html</button>
         <button class="file-tab" data-pane="scssCss"><span class="dot sc"></span>style.scss</button>
       </div>
+      <div class="editor-meta">
+        <div class="zoom-toggle" id="codeZoom" title="Kod boyutu (etikete çift tıkla: sıfırla)">
+          <button data-z="-" aria-label="Küçült">−</button>
+          <span class="zoom-label" id="codeZoomLabel">100%</span>
+          <button data-z="+" aria-label="Büyüt">+</button>
+        </div>
+      </div>
     </div>
     <div class="editor-wrap">
       <div class="editor-pane active" id="pane-bootstrap"><textarea id="codeBootstrap"></textarea></div>
@@ -848,6 +901,11 @@
         <button data-fw="scss"><span class="sw sc"></span>Saf SCSS</button>
       </div>
       <div class="preview-meta">
+        <div class="zoom-toggle" id="previewZoom" title="Önizleme ölçeği (etikete çift tıkla: sıfırla)">
+          <button data-z="-" aria-label="Küçült">−</button>
+          <span class="zoom-label" id="previewZoomLabel">100%</span>
+          <button data-z="+" aria-label="Büyüt">+</button>
+        </div>
         <div class="device-toggle layout-toggle" id="layoutSeg" title="Karşılaştırma düzeni">
           <button class="active" data-l="row" title="Yan yana">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="9.5" y="4" width="5" height="16" rx="1"/><rect x="16" y="4" width="5" height="16" rx="1"/></svg>
@@ -3107,6 +3165,58 @@ document.querySelectorAll('#layoutSeg button').forEach(b => {
     b.classList.add('active');
     previewArea.classList.toggle('stacked', b.dataset.l === 'col');
   });
+});
+
+// Zoom controls (kod editörü + önizleme)
+function setupZoom({ steps, defaultIdx, rootId, labelId, cssVar, onChange }) {
+  let idx = defaultIdx;
+  const root = document.getElementById(rootId);
+  const label = document.getElementById(labelId);
+  const minus = root.querySelector('button[data-z="-"]');
+  const plus = root.querySelector('button[data-z="+"]');
+
+  const apply = () => {
+    const z = steps[idx];
+    document.documentElement.style.setProperty(cssVar, z);
+    label.textContent = Math.round(z * 100) + '%';
+    minus.disabled = idx === 0;
+    plus.disabled = idx === steps.length - 1;
+    if (onChange) onChange(z);
+  };
+
+  minus.addEventListener('click', () => { if (idx > 0) { idx--; apply(); } });
+  plus.addEventListener('click', () => { if (idx < steps.length - 1) { idx++; apply(); } });
+  label.addEventListener('dblclick', () => { idx = defaultIdx; apply(); });
+
+  // Ctrl/Cmd + scroll desteği (sadece ilgili panel üzerindeyken)
+  const panel = root.closest('.panel');
+  if (panel) {
+    panel.addEventListener('wheel', (e) => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      e.preventDefault();
+      if (e.deltaY < 0 && idx < steps.length - 1) { idx++; apply(); }
+      else if (e.deltaY > 0 && idx > 0) { idx--; apply(); }
+    }, { passive: false });
+  }
+
+  apply();
+}
+
+setupZoom({
+  steps: [0.7, 0.8, 0.9, 1.0, 1.1, 1.25, 1.5, 1.75, 2.0],
+  defaultIdx: 3,
+  rootId: 'codeZoom',
+  labelId: 'codeZoomLabel',
+  cssVar: '--code-zoom',
+  onChange: () => Object.values(editors).forEach(ed => ed.refresh())
+});
+
+setupZoom({
+  steps: [0.5, 0.6, 0.75, 0.85, 1.0, 1.15, 1.25, 1.5, 2.0],
+  defaultIdx: 4,
+  rootId: 'previewZoom',
+  labelId: 'previewZoomLabel',
+  cssVar: '--preview-zoom'
 });
 
 // Snippets — seviyelere göre gruplanmış (sidebar)
