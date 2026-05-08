@@ -2542,49 +2542,51 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
 }`
   },
   holyGrail: {
-    bootstrap: `<!-- Bootstrap holy grail layout -->
-<div class="d-flex flex-column" style="min-height:100vh">
+    bootstrap: `<!-- col-md-{2,8,2} ile header-nav-main-aside-footer -->
+<!-- Bootstrap holy grail layout -->
+<div class="container-fluid px-0">
   <header class="bg-dark text-white px-4 py-3 fw-bold">Header</header>
-  <div class="d-flex flex-grow-1">
-    <nav class="bg-light border-end p-3" style="width:180px">
+  <div class="row g-0" style="min-height:260px">
+    <div class="col-md-2 bg-light border-end p-3">
       <div class="fw-semibold small text-uppercase text-muted mb-2">Nav</div>
       <a class="d-block text-decoration-none text-dark py-1">Anasayfa</a>
       <a class="d-block text-decoration-none text-dark py-1">Hakkında</a>
       <a class="d-block text-decoration-none text-dark py-1">İletişim</a>
-    </nav>
-    <main class="flex-grow-1 p-4 bg-white">
+    </div>
+    <div class="col-md-8 bg-white p-4">
       <h4 class="fw-bold">Main</h4>
       <p class="text-muted">Asıl içerik bu alanda yer alır. Header, footer ve iki yan kolon sabittir.</p>
-    </main>
-    <aside class="bg-light border-start p-3" style="width:180px">
+    </div>
+    <div class="col-md-2 bg-light border-start p-3">
       <div class="fw-semibold small text-uppercase text-muted mb-2">Aside</div>
       <p class="small text-muted mb-0">Yan içerik / reklam / bağlantılar</p>
-    </aside>
+    </div>
   </div>
   <footer class="bg-dark text-white px-4 py-3 text-center small">© 2026 — Footer</footer>
 </div>`,
-    tailwind: `<!-- Tailwind holy grail layout -->
-<div class="min-h-screen flex flex-col">
+    tailwind: `<!-- grid-cols-12 col-span-{2,8,2} ile sayfa iskeleti -->
+<!-- Tailwind holy grail layout -->
+<div class="flex flex-col" style="min-height:360px">
   <header class="bg-slate-900 text-white px-6 py-4 font-bold">Header</header>
-  <div class="flex-1 flex">
-    <nav class="bg-slate-50 border-r p-4 w-44">
+  <div class="grid grid-cols-12 flex-1">
+    <nav class="col-span-2 bg-slate-50 border-r p-4">
       <div class="text-xs uppercase tracking-wider text-slate-500 font-semibold mb-2">Nav</div>
       <a class="block py-1 text-slate-700 hover:text-indigo-600">Anasayfa</a>
       <a class="block py-1 text-slate-700 hover:text-indigo-600">Hakkında</a>
       <a class="block py-1 text-slate-700 hover:text-indigo-600">İletişim</a>
     </nav>
-    <main class="flex-1 p-6 bg-white">
+    <main class="col-span-8 p-6 bg-white">
       <h4 class="text-lg font-bold">Main</h4>
       <p class="text-slate-500 mt-1">Asıl içerik bu alanda yer alır. Header, footer ve iki yan kolon sabittir.</p>
     </main>
-    <aside class="bg-slate-50 border-l p-4 w-44">
+    <aside class="col-span-2 bg-slate-50 border-l p-4">
       <div class="text-xs uppercase tracking-wider text-slate-500 font-semibold mb-2">Aside</div>
       <p class="text-sm text-slate-500">Yan içerik / reklam / bağlantılar</p>
     </aside>
   </div>
   <footer class="bg-slate-900 text-white px-6 py-4 text-center text-sm">© 2026 — Footer</footer>
 </div>`,
-    scssHtml: `<!-- Saf SCSS holy grail layout (CSS Grid) -->
+    scssHtml: `<!-- CSS grid-template-areas ile klasik Holy Grail iskeleti -->
 <div class="hg">
   <header class="hg__header">Header</header>
   <nav class="hg__nav">
@@ -2678,9 +2680,10 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
 }`
   },
   dashboard: {
-    bootstrap: `<!-- Bootstrap dashboard layout -->
-<div class="d-flex" style="min-height:100vh">
-  <aside class="bg-dark text-white p-3" style="width:220px">
+    bootstrap: `<!-- col-md-4 stat kartlar, sidebar topbar dashboard -->
+<!-- Bootstrap dashboard layout -->
+<div class="d-flex" style="min-height:380px">
+  <aside class="bg-dark text-white p-3" style="width:200px">
     <div class="fw-bold mb-3">◆ Divizyon</div>
     <small class="text-white-50 text-uppercase">Menü</small>
     <nav class="d-flex flex-column gap-1 mt-2">
@@ -2719,9 +2722,10 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
     </main>
   </div>
 </div>`,
-    tailwind: `<!-- Tailwind dashboard layout -->
-<div class="min-h-screen flex">
-  <aside class="bg-slate-900 text-white p-4 w-56">
+    tailwind: `<!-- md:grid-cols-3 stat kartlar, sidebar topbar düzeni -->
+<!-- Tailwind dashboard layout -->
+<div class="flex" style="min-height:380px">
+  <aside class="bg-slate-900 text-white p-4 w-48">
     <div class="font-bold mb-4">◆ Divizyon</div>
     <div class="text-xs uppercase tracking-wider text-slate-400">Menü</div>
     <nav class="flex flex-col gap-1 mt-2">
@@ -2737,7 +2741,7 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
       <span class="bg-indigo-600 text-white text-xs font-semibold rounded-full px-3 py-1">3 yeni bildirim</span>
     </header>
     <main class="bg-slate-50 p-6 flex-1">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="grid grid-cols-3 gap-4">
         <div class="bg-white rounded-xl shadow-sm p-4">
           <span class="text-sm text-slate-500">Gelir</span>
           <h4 class="text-2xl font-bold mt-1">₺48.2K</h4>
@@ -2754,7 +2758,7 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
     </main>
   </div>
 </div>`,
-    scssHtml: `<!-- Saf SCSS dashboard layout -->
+    scssHtml: `<!-- grid auto-fit minmax ile stat kartlar flex sidebar -->
 <div class="dash">
   <aside class="dash__side">
     <div class="dash__brand">◆ Divizyon</div>
@@ -2886,19 +2890,20 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
 }`
   },
   splitScreen: {
-    bootstrap: `<!-- Bootstrap split screen layout -->
-<div class="d-flex flex-column flex-md-row" style="min-height:100vh">
-  <div class="flex-fill d-flex align-items-center justify-content-center text-white p-5"
+    bootstrap: `<!-- col-md-6 ile iki eşit panel yan yana sıralanır -->
+<!-- Bootstrap split screen layout -->
+<div class="row g-0" style="min-height:360px">
+  <div class="col-md-6 d-flex align-items-center justify-content-center text-white p-5"
        style="background:linear-gradient(135deg,#4f46e5,#7c3aed)">
-    <div class="text-center" style="max-width:340px">
+    <div class="text-center" style="max-width:300px">
       <span class="badge bg-white text-primary mb-3">Tasarımcılar</span>
       <h2 class="fw-bold">Görsel zenginlik</h2>
       <p class="opacity-75 mb-3">Bileşen kütüphaneleri, tipografi ve Figma uyumu.</p>
       <button class="btn btn-light fw-semibold">Keşfet</button>
     </div>
   </div>
-  <div class="flex-fill d-flex align-items-center justify-content-center bg-light p-5">
-    <div class="text-center" style="max-width:340px">
+  <div class="col-md-6 d-flex align-items-center justify-content-center bg-light p-5">
+    <div class="text-center" style="max-width:300px">
       <span class="badge bg-dark text-white mb-3">Geliştiriciler</span>
       <h2 class="fw-bold">Hızlı entegrasyon</h2>
       <p class="text-muted mb-3">Üç framework, tek tıkla karşılaştırma ve canlı önizleme.</p>
@@ -2906,26 +2911,27 @@ body { margin: 0; font-family: 'Inter', sans-serif; }
     </div>
   </div>
 </div>`,
-    tailwind: `<!-- Tailwind split screen layout -->
-<div class="min-h-screen flex flex-col md:flex-row">
-  <div class="flex-1 flex items-center justify-center text-white p-12 bg-gradient-to-br from-indigo-600 to-purple-600">
-    <div class="text-center max-w-sm">
+    tailwind: `<!-- grid-cols-2 ile iki eşit panel yan yana dizilir -->
+<!-- Tailwind split screen layout -->
+<div class="grid grid-cols-2" style="min-height:360px">
+  <div class="flex items-center justify-center text-white p-10 bg-gradient-to-br from-indigo-600 to-purple-600">
+    <div class="text-center max-w-xs">
       <span class="inline-block bg-white text-indigo-700 text-xs font-semibold px-3 py-1 rounded-full mb-3">Tasarımcılar</span>
-      <h2 class="text-3xl font-bold">Görsel zenginlik</h2>
+      <h2 class="text-2xl font-bold">Görsel zenginlik</h2>
       <p class="opacity-80 mt-2 mb-4">Bileşen kütüphaneleri, tipografi ve Figma uyumu.</p>
       <button class="bg-white text-indigo-700 font-semibold px-5 py-2 rounded-md hover:bg-slate-100 transition">Keşfet</button>
     </div>
   </div>
-  <div class="flex-1 flex items-center justify-center bg-slate-50 p-12">
-    <div class="text-center max-w-sm">
+  <div class="flex items-center justify-center bg-slate-50 p-10">
+    <div class="text-center max-w-xs">
       <span class="inline-block bg-slate-900 text-white text-xs font-semibold px-3 py-1 rounded-full mb-3">Geliştiriciler</span>
-      <h2 class="text-3xl font-bold">Hızlı entegrasyon</h2>
+      <h2 class="text-2xl font-bold">Hızlı entegrasyon</h2>
       <p class="text-slate-600 mt-2 mb-4">Üç framework, tek tıkla karşılaştırma ve canlı önizleme.</p>
       <button class="bg-slate-900 text-white font-semibold px-5 py-2 rounded-md hover:bg-slate-800 transition">Başla</button>
     </div>
   </div>
 </div>`,
-    scssHtml: `<!-- Saf SCSS split screen layout -->
+    scssHtml: `<!-- flex:1 ile her panel eşit yarım ekranı kaplar -->
 <div class="split">
   <div class="split__pane split__pane--left">
     <div class="split__inner">
